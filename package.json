@@ -1,0 +1,22 @@
+{
+  "name": "youtube-automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@luthfipun/yt-uploader": "^1.0.17",
+    "axios": "^1.2.2",
+    "canvas": "^2.11.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.4.1",
+    "nodemon": "^2.0.20",
+    "puppeteer": "^19.5.0"
+  }
+}
