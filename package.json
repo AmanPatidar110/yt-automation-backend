@@ -19,6 +19,8 @@
     "firebase-admin": "^11.4.1",
     "fluent-ffmpeg": "^2.1.2",
     "nodemon": "^2.0.20",
-    "puppeteer": "^19.5.0"
+    "puppeteer": "^19.5.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1"
   }
 }
