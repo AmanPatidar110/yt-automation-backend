@@ -1,8 +1,4 @@
-export default [
-    {
-        "X-RapidAPI-Key": "3dcf5d7931msh8dd32ea41c3357fp192eaejsn99c212b2dfa8",
-        "X-RapidAPI-Host": "tiktok-video-no-watermark2.p.rapidapi.com",
-    },
+module.exports = [
     {
         "X-RapidAPI-Key": "ec024eb781msh6ddf7d7b6e847e1p177749jsn56cc0a2f9572",
         "X-RapidAPI-Host": "tiktok-video-no-watermark2.p.rapidapi.com",
@@ -37,6 +33,10 @@ export default [
     },
     {
         "X-RapidAPI-Key": "2871145f72mshf6554abeff2a63dp10be73jsn3fbebf6eb409",
+        "X-RapidAPI-Host": "tiktok-video-no-watermark2.p.rapidapi.com",
+    },
+    {
+        "X-RapidAPI-Key": "3dcf5d7931msh8dd32ea41c3357fp192eaejsn99c212b2dfa8",
         "X-RapidAPI-Host": "tiktok-video-no-watermark2.p.rapidapi.com",
     },
 ];
