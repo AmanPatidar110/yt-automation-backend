@@ -1,7 +1,9 @@
 const { default: axios } = require('axios')
 const express = require('express')
+const { uploadVideos } = require('../Controllers/upload.controller')
 const router = express.Router()
 const { db } = require('../firebase')
+const { crawl } = require('../instabot')
 
 router.get('/fetch_keyword_videos', async (req, res, next) => {
   try {
@@ -54,6 +56,23 @@ router.get('/fetch_keyword_videos', async (req, res, next) => {
 
       console.log(options)
     }
+    res.status(200).json({ msg: 'ok', FETCH_COUNT })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    console.log(error)
+    return next(error)
+  }
+})
+
+router.post('/fetch_messages_from_insta', async (req, res, next) => {
+  try {
+    const threadIds = req.body.threadIds // ['340282366841710300949128151362669835188']
+    const userName = req.body.userName // 'swipe_facts'
+    const password = req.body.password // '_iCHlpHI1=dR6+o3refI'
+    const forChannelEmail = req.body.forEmail //'amanpatidar110@gmail.com'
+
+    const videos = await crawl(threadIds, userName, password)
+    const FETCH_COUNT = await uploadVideos(videos, forChannelEmail)
     res.status(200).json({ msg: 'ok', FETCH_COUNT })
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500
