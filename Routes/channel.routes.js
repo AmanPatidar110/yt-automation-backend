@@ -10,8 +10,8 @@ router.post('/add_channel', async (req, res, next) => {
 
     console.log('body', channelEmail, channelPassword, keywords)
     const resp = await db.collection('channels').doc(channelEmail).set({
-      channelEmail,
-      channelPassword,
+      email: channelEmail,
+      password: channelPassword,
       keywords
     })
 

@@ -29,7 +29,7 @@ exports.getVideoFromTiktokVideoId = async (videoId, user) => {
 
   try {
     const res = await axios(config)
-    console.log(res.data, 'data html')
+    // console.log(res.data, 'data html')
 
     const $ = cheerio.load(res.data)
     const videoURL = $('a').first().attr('href')
