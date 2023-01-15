@@ -1,6 +1,5 @@
 const express = require('express')
 const router = express.Router()
-const cheerio = require('cheerio')
 
 const { YoutubeUploader } = require('@luthfipun/yt-uploader')
 const {
@@ -11,23 +10,18 @@ const {
   fileDownloadWithoutAudio,
   removeFile
 } = require('../Controllers/download.controller')
+
+const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta')
 const {
   getVideoFromTiktokVideoId
-} = require('../Controllers/getVIdeoFromTiktokVideoId')
-const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
+} = require('../Controllers/getVideoFromTiktokVideoId')
 
 router.get('/', async (req, res, next) => {
   try {
     let UPLOAD_COUNT = 0
     const email = req.query.email
+    const password = req.query.password
     const targetUploadCount = req.query.targetUploadCount
-
-    const channelRef = db.collection('channels').doc(email)
-    const channel = await channelRef.get()
-
-    if (!channel.exists) {
-      res.status(400).json({ msg: 'Channel not found!', UPLOAD_COUNT })
-    }
 
     const videosRef = db.collection('videos')
     const snapshot = await videosRef
@@ -50,22 +44,22 @@ router.get('/', async (req, res, next) => {
       videos.push(vid.data())
     })
 
-    if (videos.length < targetUploadCount) {
-      await fetchKeywordVideos(email, channel.keywords)
-    }
-
     for (const video of videos) {
       console.log(video.video_id, '=>', UPLOAD_COUNT, targetUploadCount)
       if (UPLOAD_COUNT >= targetUploadCount) {
         break
       }
-      await youtubeUploader.Login(email, channel.password)
+      await youtubeUploader.Login(email, password)
       console.log('LoggedIn to your account and muting audio')
-      const $ = cheerio.load(
-        await getVideoFromTiktokVideoId(video.video_id, video.unique_id)
-      )
-      const videoURL = $('a').first().attr('href')
-      console.log(videoURL)
+      let videoURL = ''
+      if (video.source === 'INSTAGRAM') {
+        videoURL = await getVideoUrlForInsta(video.video_id)
+      } else {
+        videoURL = await getVideoFromTiktokVideoId(
+          video.video_id,
+          video.unique_id
+        )
+      }
 
       await fileDownloadWithoutAudio(videoURL, video.video_id)
       console.log('muting done. Now, Uploading ...')
