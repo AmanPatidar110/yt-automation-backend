@@ -15,6 +15,7 @@ const {
 const {
     getVideoFromTiktokVideoId,
 } = require("../Controllers/getVIdeoFromTiktokVideoId");
+const { getVideoUrlForInsta } = require("../Controllers/getVideoUrlForInsta");
 
 router.get("/", async (req, res, next) => {
     try {
@@ -51,11 +52,15 @@ router.get("/", async (req, res, next) => {
             }
             await youtubeUploader.Login(email, password);
             console.log("LoggedIn to your account and muting audio");
-            const $ = cheerio.load(
-                await getVideoFromTiktokVideoId(video.video_id, video.unique_id)
-            );
-            const videoURL = $("a").first().attr("href");
-            console.log(videoURL);
+            let videoURL = "";
+            if (video.source === "INSTAGRAM") {
+                videoURL = await getVideoUrlForInsta(video.video_id);
+            } else {
+                videoURL = await getVideoFromTiktokVideoId(
+                    video.video_id,
+                    video.unique_id
+                );
+            }
 
             await fileDownloadWithoutAudio(videoURL, video.video_id);
             console.log("muting done. Now, Uploading ...");
