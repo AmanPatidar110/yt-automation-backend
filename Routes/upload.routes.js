@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { YoutubeUploader } = require('@luthfipun/yt-uploader');
+const YoutubeUploader = require('../Utility/youtubeUploaderLibrary/index');
 const {
     UPLOAD_PRIVACY_PRIVATE,
 } = require('@luthfipun/yt-uploader/dist/helpers/youtubeUploaderOptions');
@@ -19,7 +19,6 @@ const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos');
 
 router.get('/', async (req, res, next) => {
     try {
-        let UPLOAD_COUNT = 0;
         const email = req.query.email;
         const targetUploadCount = req.query.targetUploadCount;
 
@@ -45,29 +44,27 @@ router.get('/', async (req, res, next) => {
         const snapshot2 = await videosRef
             .where('forEmail', '==', email)
             .where('uploaded', '==', false)
+            .limit(parseInt(targetUploadCount))
             .get();
         if (snapshot2.empty) {
             console.log('No matching videos.');
-            res.status(200).json({ msg: 'No matching videos.', UPLOAD_COUNT });
+            res.status(200).json({ msg: 'No matching videos.' });
         }
 
         const videos = [];
+        const videoMetaData = [];
         snapshot2.forEach((vid) => {
             videos.push(vid.data());
         });
 
         const youtubeUploader = new YoutubeUploader(
             'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-            UPLOAD_PRIVACY_PRIVATE
+            'PRIVATE'
         );
 
         for (const video of videos) {
-            console.log(video.video_id, '=>', UPLOAD_COUNT, targetUploadCount);
-            if (UPLOAD_COUNT >= targetUploadCount) {
-                break;
-            }
-            await youtubeUploader.Login(email, channel.password);
-            console.log('LoggedIn to your account and muting audio');
+            console.log(video.video_id, '=>', targetUploadCount);
+
             let videoURL = '';
             if (video.source === 'INSTAGRAM') {
                 videoURL = await getVideoUrlForInsta(video.video_id);
@@ -78,26 +75,32 @@ router.get('/', async (req, res, next) => {
                 );
             }
 
+            console.log('videoURL', videoURL);
+            if (!videoURL) {
+                await onVideoUploadSuccess(video.video_id);
+                continue;
+            }
             await fileDownloadWithoutAudio(videoURL, video.video_id);
-            console.log('muting done. Now, Uploading ...');
-            await youtubeUploader.UploadVideo(
-                `Videos/${video.video_id}.mp4`,
-                video.title,
-                video.description,
-                '',
-                video.tags
-            );
-            UPLOAD_COUNT += 1;
-            await db.collection('videos').doc(video.video_id).update({
-                uploaded: true,
+            videoMetaData.push({
+                Video: `Videos/${video.video_id}.mp4`,
+                Title: video.title,
+                Description: video.description,
+                Thumbnail: '',
+                Tags: video.tags,
+                onSuccess: async () =>
+                    await onVideoUploadSuccess(video.video_id),
             });
-
-            await removeFile(`Videos/${video.video_id}.mp4`);
-
-            console.log('Uploading successfully');
         }
+        console.log('muting done. Now, Uploading ...');
+        // upload starts here
 
-        await youtubeUploader.CloseBrowser();
+        await youtubeUploader.Login(email, channel.password);
+        console.log('LoggedIn to your account and muting audio');
+        await youtubeUploader.UploadVideo(videoMetaData);
+
+        console.log('Uploading successfully');
+        // // end here
+        let UPLOAD_COUNT = await youtubeUploader.CloseBrowser();
         res.status(200).json({ msg: 'Videos uploaded', UPLOAD_COUNT });
     } catch (e) {
         console.log(e);
@@ -105,11 +108,11 @@ router.get('/', async (req, res, next) => {
 });
 
 const onVideoUploadSuccess = async (videoId) => {
-    await db.collection('videos').doc(video_id).update({
+    await db.collection('videos').doc(videoId).update({
         uploaded: true,
     });
 
-    await removeFile(`Videos/${video_id}.mp4`);
+    await removeFile(`Videos/${videoId}.mp4`);
 };
 
 router.get('/new', async (req, res) => {
@@ -129,7 +132,7 @@ router.get('/new', async (req, res) => {
             .get();
         if (snapshot.empty) {
             console.log('No matching videos.');
-            res.status(200).json({ msg: 'No matching videos.', UPLOAD_COUNT });
+            res.status(200).json({ msg: 'No matching videos.' });
         }
 
         const videos = [];

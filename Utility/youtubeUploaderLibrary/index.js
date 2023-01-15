@@ -1,10 +1,10 @@
-import Puppeteer from 'puppeteer-extra';
-import UserAgentPlugin from 'puppeteer-extra-plugin-anonymize-ua';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import Delay from 'delay';
-import FS from 'fs';
-import FSExtra from 'fs-extra';
-import { getElement } from './helpers/getElement.js';
+const Puppeteer = require('puppeteer-extra');
+const UserAgentPlugin = require('puppeteer-extra-plugin-anonymize-ua');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const Delay = require('delay');
+const FS = require('fs');
+const FSExtra = require('fs-extra');
+const { getElement } = require('./helpers/getElement.js');
 
 const CHROMIUM_MAC_PATH =
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -20,7 +20,7 @@ Puppeteer.use(UserAgentPlugin({ makeWindows: true }));
 
 const rootDir = `${process.cwd()}/browser`; // TODO: Make the "Browser" folder appear in temp folder or something
 
-export class YoutubeUploader {
+class YoutubeUploader {
     Browser;
     MainPage;
     privacy;
@@ -79,15 +79,16 @@ export class YoutubeUploader {
             this.MainPage = await this.Browser.newPage();
             await this.MainPage.goto('https://studio.youtube.com/');
             await this.MainPage.type('input[type="email"]', Email, {
-                delay: 500,
+                delay: 100,
             });
             await Delay(3000);
             await this.MainPage.keyboard.press('Enter');
             await Delay(5000);
             await this.MainPage.type('input[type="password"]', Password, {
-                delay: 600,
+                delay: 100,
             });
             await this.MainPage.keyboard.press('Enter');
+            await this.MainPage.waitForNavigation();
         } catch (err) {
             return console.log(err);
         }
@@ -95,17 +96,19 @@ export class YoutubeUploader {
 
     // For uploading your video
     UploadVideo = async (videos) => {
+        let UPLOAD_COUNT = 0;
         for (let video of videos) {
-            const { Video, Title, Description, Thumbnails } = video;
+            const { Video, Title, Description, Thumbnails, onSuccess, Tags } =
+                video;
             // guard clauses
-            if (!video.length) {
+            if (!Video.length) {
                 throw new Error('Video source cannot be empty.');
             } else if (!FS.existsSync(Video)) {
                 throw new Error(`Cannot find video at: ${Video}`);
             }
 
             try {
-                this.MainPage.goto('youtube.com/upload');
+                await this.MainPage.goto('https://youtube.com/upload/');
 
                 // Upload video
                 const submitFileBtn = await getElement(
@@ -232,17 +235,25 @@ export class YoutubeUploader {
                 );
 
                 await publishBtn.click();
+                if (this.privacy === 'PUBLIC') {
+                    // Close popup
+                    const closeBtn = await getElement(
+                        'ytcp-button[id="close-button"]',
+                        this.MainPage,
+                        true
+                    );
+                    await closeBtn.click();
+                }
 
-                // Close popup
-                const closeBtn = await getElement(
-                    'ytcp-button[id="close-button"]',
-                    this.MainPage,
-                    true
-                );
-                await closeBtn.click();
+                await this.MainPage.waitForNavigation();
+                await this.MainPage.waitForTimeout(200);
+                await onSuccess();
+                UPLOAD_COUNT++;
             } catch (err) {
                 return console.log(err);
             }
         }
+        return UPLOAD_COUNT;
     };
 }
+module.exports = YoutubeUploader;

@@ -1,4 +1,4 @@
-export const getElement = async (query, mainPage, needToWait = false) => {
+exports.getElement = async (query, mainPage, needToWait = false) => {
     let button;
     try {
         if (needToWait) {
