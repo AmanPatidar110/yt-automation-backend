@@ -1,13 +1,15 @@
 const express = require('express')
 const http = require('http')
-var cors = require('cors')
+const cors = require('cors')
 
 const searchRoutes = require('./Routes/search.routes')
 const uploadRoutes = require('./Routes/upload.routes')
-// const cheerio = require('cheerio')
+const channelRoutes = require('./Routes/channel.routes')
 
 const app = express()
 app.use(cors())
+app.use(express.json())
+
 const server = http.createServer(app)
 const PORT = process.env.PORT || 4000
 
@@ -16,6 +18,7 @@ server.listen(PORT, () => {
 })
 
 app.use('/search', searchRoutes)
+app.use('/channel', channelRoutes)
 app.use('/upload', uploadRoutes)
 
 app.use((error, req, res, next) => {
