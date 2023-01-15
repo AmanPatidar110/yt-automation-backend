@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { upload } = require('youtube-videos-uploader');
-const puppeteer = require('puppeteer');
 
 const { YoutubeUploader } = require('@luthfipun/yt-uploader');
 const {
@@ -17,42 +15,58 @@ const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta');
 const {
     getVideoFromTiktokVideoId,
 } = require('../Controllers/getVideoFromTiktokVideoId');
-const { createTagForYoutube } = require('../Utility/createTagForYoutube');
+const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos');
 
 router.get('/', async (req, res, next) => {
     try {
         let UPLOAD_COUNT = 0;
         const email = req.query.email;
-        const password = req.query.password;
         const targetUploadCount = req.query.targetUploadCount;
 
+        const channelRef = db.collection('channels').doc(email);
+        const channel = await (await channelRef.get()).data();
+
         const videosRef = db.collection('videos');
-        const snapshot = await videosRef
+        let availableCount = 0;
+        do {
+            const snapshot = await videosRef
+                .where('forEmail', '==', email)
+                .where('uploaded', '==', false)
+                .count()
+                .get();
+
+            availableCount = snapshot.data().count;
+            console.log('snapshot', availableCount);
+            if (availableCount < targetUploadCount) {
+                await fetchKeywordVideos(email, channel.keywords);
+            }
+        } while (availableCount < targetUploadCount);
+
+        const snapshot2 = await videosRef
             .where('forEmail', '==', email)
             .where('uploaded', '==', false)
             .get();
-        console.log('snapshot', snapshot);
-        if (snapshot.empty) {
+        if (snapshot2.empty) {
             console.log('No matching videos.');
             res.status(200).json({ msg: 'No matching videos.', UPLOAD_COUNT });
         }
+
+        const videos = [];
+        snapshot2.forEach((vid) => {
+            videos.push(vid.data());
+        });
 
         const youtubeUploader = new YoutubeUploader(
             'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
             UPLOAD_PRIVACY_PRIVATE
         );
 
-        const videos = [];
-        snapshot.forEach((vid) => {
-            videos.push(vid.data());
-        });
-
         for (const video of videos) {
             console.log(video.video_id, '=>', UPLOAD_COUNT, targetUploadCount);
             if (UPLOAD_COUNT >= targetUploadCount) {
                 break;
             }
-            await youtubeUploader.Login(email, password);
+            await youtubeUploader.Login(email, channel.password);
             console.log('LoggedIn to your account and muting audio');
             let videoURL = '';
             if (video.source === 'INSTAGRAM') {
@@ -73,7 +87,6 @@ router.get('/', async (req, res, next) => {
                 '',
                 video.tags
             );
-
             UPLOAD_COUNT += 1;
             await db.collection('videos').doc(video.video_id).update({
                 uploaded: true,
@@ -90,6 +103,7 @@ router.get('/', async (req, res, next) => {
         console.log(e);
     }
 });
+
 const onVideoUploadSuccess = async (videoId) => {
     await db.collection('videos').doc(video_id).update({
         uploaded: true,
