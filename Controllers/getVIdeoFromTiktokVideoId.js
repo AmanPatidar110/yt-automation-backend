@@ -1,5 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { executablePath } = require('puppeteer');
 
 exports.getVideoFromTiktokVideoId = async (videoId, user) => {
     const config = {
@@ -51,8 +52,7 @@ exports.getVideoFromTiktokVideoId = async (videoId, user) => {
         const browser = await puppeteer.launch({
             headless: true,
             ignoreHTTPSErrors: true,
-            executablePath:
-                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            executablePath: executablePath(),
         });
         const page = await browser.newPage();
         await page.goto('https://tiktokdownload.online/', {

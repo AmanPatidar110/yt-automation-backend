@@ -16,6 +16,7 @@ const {
     getVideoFromTiktokVideoId,
 } = require('../Controllers/getVideoFromTiktokVideoId');
 const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos');
+const { executablePath } = require('puppeteer');
 
 router.get('/', async (req, res, next) => {
     try {
@@ -173,8 +174,7 @@ router.get('/new', async (req, res) => {
             await fileDownloadWithoutAudio(videoURL, video.video_id);
         }
         await upload(credentials, videos, {
-            executablePath:
-                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            executablePath: executablePath(),
         });
         res.status(200).json({ msg: 'Videos uploaded', UPLOAD_COUNT });
     } catch (error) {
