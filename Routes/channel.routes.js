@@ -7,11 +7,15 @@ router.post('/add_channel', async (req, res, next) => {
     const channelEmail = req.body.channelEmail
     const channelPassword = req.body.channelPassword
     const keywords = req.body.keywords
+    const channelName = req.body.channelName
+    const defaultUploadCount = req.body.defaultUploadCount
 
     console.log('body', channelEmail, channelPassword, keywords)
     const resp = await db.collection('channels').doc(channelEmail).set({
+      name: channelName,
       email: channelEmail,
       password: channelPassword,
+      defaultUploadCount,
       keywords
     })
 

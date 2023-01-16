@@ -2,9 +2,9 @@ const express = require('express')
 const http = require('http')
 const cors = require('cors')
 
-const searchRoutes = require('./Routes/search.routes')
 const uploadRoutes = require('./Routes/upload.routes')
 const channelRoutes = require('./Routes/channel.routes')
+const instaRoutes = require('./Routes/insta.routes')
 
 const app = express()
 app.use(cors())
@@ -18,8 +18,8 @@ server.listen(PORT, () => {
 })
 app.use(express.json())
 
-app.use('/search', searchRoutes)
 app.use('/channel', channelRoutes)
+app.use('/insta', instaRoutes)
 app.use('/upload', uploadRoutes)
 
 app.use((error, req, res, next) => {
