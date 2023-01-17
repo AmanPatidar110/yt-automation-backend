@@ -7,7 +7,7 @@ puppeteer.use(StealthPlugin())
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
-exports.getVideoFromTiktokVideoId = async (videoId, user) => {
+const getVideoFromTiktokVideoId = async (videoId, user) => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
@@ -31,4 +31,8 @@ exports.getVideoFromTiktokVideoId = async (videoId, user) => {
   } catch (error) {
     console.log(error)
   }
+}
+
+module.exports = {
+  getVideoFromTiktokVideoId
 }

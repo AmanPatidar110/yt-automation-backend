@@ -9,10 +9,11 @@ const {
 } = require('../Controllers/download.controller')
 
 const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta')
+
+const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
 const {
   getVideoFromTiktokVideoId
 } = require('../Controllers/getVideoFromTiktokVideoId')
-const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
 
 router.get('/', async (req, res, next) => {
   try {
