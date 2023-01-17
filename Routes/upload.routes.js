@@ -12,8 +12,8 @@ const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta')
 
 const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
 const {
-  getVideoFromTiktokVideoId
-} = require('../Controllers/getVideoFromTiktokVideoId')
+  getVideoUrlFromTiktokVideoId
+} = require('../Controllers/getVideoUrlFromTiktokVideoId')
 
 router.get('/', async (req, res, next) => {
   try {
@@ -67,7 +67,7 @@ router.get('/', async (req, res, next) => {
       if (video.source === 'INSTAGRAM') {
         videoURL = await getVideoUrlForInsta(video.video_id)
       } else {
-        videoURL = await getVideoFromTiktokVideoId(
+        videoURL = await getVideoUrlFromTiktokVideoId(
           video.video_id,
           video.unique_id
         )
