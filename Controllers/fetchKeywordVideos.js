@@ -1,16 +1,15 @@
 const { default: axios } = require('axios')
 const apiKey = require('../Constants/keys')
-const { db } = require('../firebase')
+const { uploadVideosOnFirestore } = require('./fireStoreUpload.controller')
 
-const getApiKey = apiUseCount => {
-  return apiKey[apiUseCount % 10]
+const getApiKey = FETCH_COUNT => {
+  return apiKey[FETCH_COUNT % 10]
 }
 
-exports.fetchKeywordVideos = async (forEmail, keywords) => {
+exports.fetchKeywordVideos = async (forEmail, keywords, forUser) => {
   const keyword = keywords[Math.floor(Math.random() * keywords.length)]
   try {
     let FETCH_COUNT = 0
-    let apiUseCount = 0
     let hasNext = true
     let cursor = '0'
 
@@ -18,7 +17,7 @@ exports.fetchKeywordVideos = async (forEmail, keywords) => {
       method: 'GET',
       url: 'https://tiktok-video-no-watermark2.p.rapidapi.com/feed/search',
       params: { keywords: keyword, count: '30', cursor },
-      headers: getApiKey(apiUseCount)
+      headers: getApiKey(FETCH_COUNT)
     }
 
     while (FETCH_COUNT < 30 && hasNext) {
@@ -29,33 +28,18 @@ exports.fetchKeywordVideos = async (forEmail, keywords) => {
       options = {
         ...options,
         params: { ...options.params, cursor },
-        headers: getApiKey(apiUseCount)
+        headers: getApiKey(FETCH_COUNT)
       }
-      response.data.data.videos.forEach(async video => {
-        const vidRef = db.collection('videos').doc(video.video_id)
-        const vid = await vidRef.get()
-        if (!vid.exists) {
-          await db
-            .collection('videos')
-            .doc(video.video_id)
-            .set({
-              ...video,
-              keyword,
-              forEmail,
-              title: video.title.substr(0, 75),
-              description: video.title,
-              tags: [...video.title.split('#'), ...keywords]
-                .join(', #')
-                .substr(0, 500),
-              uploaded: false
-            })
 
-          FETCH_COUNT += 1
-          apiUseCount += 1
-        } else {
-          console.log('Document already exists!')
-        }
-      })
+      FETCH_COUNT = uploadVideosOnFirestore(
+        response.data.data.videos,
+        forEmail,
+        keyword,
+        'TIKTOK',
+        FETCH_COUNT,
+        forUser,
+        keywords
+      )
     }
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500

@@ -8,6 +8,7 @@ const { executablePath } = require('puppeteer')
 const {
   uploadVideosOnFirestore
 } = require('./Controllers/fireStoreUpload.controller')
+const { db } = require('./firebase')
 puppeteer.use(StealthPlugin())
 
 /** To get the proxy run below code
@@ -28,8 +29,18 @@ axios(config)
 
 **/
 
-exports.crawl = async (threadIds, userName, password, res, forChannelEmail) => {
+exports.crawl = async (
+  threadIds,
+  userName,
+  password,
+  forChannelEmail,
+  forUser
+) => {
+  let FETCH_COUNT = 0
   try {
+    const channelRef = db.collection('channels').doc(forChannelEmail)
+    const channel = (await channelRef.get()).data()
+
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
@@ -73,14 +84,14 @@ exports.crawl = async (threadIds, userName, password, res, forChannelEmail) => {
         }
         console.log(videos, videos.flat().length)
 
-        // browser.close();
-        let FETCH_COUNT = 0
         FETCH_COUNT = await uploadVideosOnFirestore(
           videos.flat(),
           forChannelEmail,
           '',
           'INSTAGRAM',
-          FETCH_COUNT
+          FETCH_COUNT,
+          forUser,
+          channel.keywords
         )
         await browser.close()
       }
@@ -123,6 +134,8 @@ exports.crawl = async (threadIds, userName, password, res, forChannelEmail) => {
     await page.goto('https://www.instagram.com/direct/inbox/', {
       waitUntil: 'networkidle2'
     })
+
+    return FETCH_COUNT
   } catch (error) {
     console.log(error)
   }

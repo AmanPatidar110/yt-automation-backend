@@ -17,6 +17,7 @@ const {
 
 router.get('/', async (req, res, next) => {
   try {
+    const forUser = req.query.forUser
     const email = req.query.email
     const targetUploadCount = req.query.targetUploadCount
 
@@ -35,12 +36,13 @@ router.get('/', async (req, res, next) => {
       availableCount = snapshot.data().count
       console.log('snapshot', availableCount)
       if (availableCount < targetUploadCount) {
-        await fetchKeywordVideos(email, channel.keywords)
+        await fetchKeywordVideos(email, channel.keywords, forUser)
       }
     } while (availableCount < targetUploadCount)
 
     const snapshot2 = await videosRef
       .where('forEmail', '==', email)
+      .where('forUser', '==', forUser)
       .where('uploaded', '==', false)
       .limit(parseInt(targetUploadCount))
       .get()
@@ -78,7 +80,7 @@ router.get('/', async (req, res, next) => {
         await onVideoUploadSuccess(video.video_id, email)
         continue
       }
-      await fileDownloadWithoutAudio(videoURL, video.video_id)
+      await fileDownloadWithoutAudio(videoURL, video.video_id, email)
       videoMetaData.push({
         Video: `Videos/${video.video_id}_${email}.mp4`,
         Title: video.title,
@@ -92,7 +94,7 @@ router.get('/', async (req, res, next) => {
 
     await youtubeUploader.Login(email, channel.password)
     console.log('LoggedIn to your account and muting audio')
-    await youtubeUploader.UploadVideo(videoMetaData)
+    await youtubeUploader.UploadVideos(videoMetaData)
 
     console.log('Uploading successfully!')
     const UPLOAD_COUNT = await youtubeUploader.CloseBrowser()

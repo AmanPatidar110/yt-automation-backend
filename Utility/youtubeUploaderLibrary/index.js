@@ -95,7 +95,7 @@ class YoutubeUploader {
   }
 
   // For uploading your video
-  UploadVideo = async videos => {
+  UploadVideos = async videos => {
     let UPLOAD_COUNT = 0
     for (let video of videos) {
       const { Video, Title, Description, Thumbnails, onSuccess, Tags } = video
@@ -107,6 +107,7 @@ class YoutubeUploader {
       }
 
       try {
+        await this.MainPage.waitForTimeout(5000)
         await this.MainPage.goto('https://youtube.com/upload/')
 
         // Upload video
