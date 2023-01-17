@@ -16,7 +16,7 @@ exports.fileDownloadWithoutAudio = async (url, videoId, forEmail) => {
           reject(err)
         })
     )
-      .withNoAudio()
+      // .withNoAudio()
       .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
   })
 }
