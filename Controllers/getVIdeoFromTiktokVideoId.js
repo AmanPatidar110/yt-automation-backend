@@ -1,80 +1,34 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-const { executablePath } = require('puppeteer');
-
-exports.getVideoFromTiktokVideoId = async (videoId, user) => {
-    const config = {
-        method: 'post',
-        url: 'https://ssstik.io/abc?url=dl',
-        headers: {
-            'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0',
-            Accept: '*/*',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'HX-Request': 'true',
-            'HX-Trigger': '_gcaptcha_pt',
-            'HX-Target': 'target',
-            'HX-Current-URL': 'https://ssstik.io/how-to-download-tiktok-video',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            Origin: 'https://ssstik.io',
-            Connection: 'keep-alive',
-            Referer: 'https://ssstik.io/how-to-download-tiktok-video',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            TE: 'trailers',
-        },
-        data: `id=https%3A%2F%2Fwww.tiktok.com%2F%40${user}%2Fvideo%2F${videoId}&locale=en`,
-    };
-
-    try {
-        const res = await axios(config);
-        console.log(res.data, 'data html');
-
-        const $ = cheerio.load(res.data);
-        const videoURL = $('a').first().attr('href');
-        return videoURL;
-    } catch (error) {
-        console.log(error);
-    }
-};
+const { executablePath } = require('puppeteer')
 
 // puppeteer imports ======================
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
+const puppeteer = require('puppeteer-extra')
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
 exports.getVideoFromTiktokVideoId = async (videoId, user) => {
-    try {
-        const browser = await puppeteer.launch({
-            headless: true,
-            ignoreHTTPSErrors: true,
-            executablePath: executablePath(),
-        });
-        const page = await browser.newPage();
-        await page.goto('https://tiktokdownload.online/', {
-            waitUntil: 'networkidle2',
-        });
-        const input = '#main_page_text';
-        await page.waitForSelector(input);
-        await page.type(
-            input,
-            `https://www.tiktok.com/@${user}/video/${videoId}`
-        );
-        await page.click('#submit');
-        await page.waitForTimeout(3000);
-        await page.waitForSelector('a.pure-button:nth-child(1)');
-        const href = await page.$eval(
-            'a.pure-button:nth-child(1)',
-            (elm) => elm.href
-        );
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      ignoreHTTPSErrors: true,
+      executablePath: executablePath()
+    })
+    const page = await browser.newPage()
+    await page.goto('https://tiktokdownload.online/', {
+      waitUntil: 'networkidle2'
+    })
+    const input = '#main_page_text'
+    await page.waitForSelector(input)
+    await page.type(input, `https://www.tiktok.com/@${user}/video/${videoId}`)
+    await page.click('#submit')
+    await page.waitForTimeout(3000)
+    await page.waitForSelector('a.pure-button:nth-child(1)')
+    const href = await page.$eval('a.pure-button:nth-child(1)', elm => elm.href)
 
-        browser.close();
-        return href;
-    } catch (error) {
-        console.log(error);
-    }
-};
+    browser.close()
+    return href
+  } catch (error) {
+    console.log(error)
+  }
+}
