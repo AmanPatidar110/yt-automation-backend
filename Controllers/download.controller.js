@@ -2,7 +2,7 @@ const fs = require('fs')
 const download = require('download')
 const Ffmpeg = require('fluent-ffmpeg')
 
-exports.fileDownloadWithoutAudio = async (url, videoId) => {
+exports.fileDownloadWithoutAudio = async (url, videoId, forEmail) => {
   return new Promise((resolve, reject) => {
     console.log('Downloading...')
     Ffmpeg(
@@ -17,7 +17,7 @@ exports.fileDownloadWithoutAudio = async (url, videoId) => {
         })
     )
       .withNoAudio()
-      .saveToFile(`./Videos/${videoId}.mp4`)
+      .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
   })
 }
 

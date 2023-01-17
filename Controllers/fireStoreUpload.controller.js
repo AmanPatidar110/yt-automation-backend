@@ -5,7 +5,9 @@ exports.uploadVideosOnFirestore = async (
   forEmail,
   keyword,
   source,
-  FETCH_COUNT
+  FETCH_COUNT,
+  forUser,
+  channelKeywords
 ) => {
   videos.forEach(async video => {
     const vidRef = db.collection('videos').doc(video.video_id)
@@ -17,10 +19,13 @@ exports.uploadVideosOnFirestore = async (
         .set({
           ...video,
           forEmail,
+          forUser,
           keyword,
           title: video.title.substr(0, 75),
           description: video.title,
-          tags: video.title.split('#').join(', #').substr(0, 500),
+          tags: [...video.title.split('#'), ...channelKeywords]
+            .join(', #')
+            .substr(0, 450),
           uploaded: false,
           source
         })
