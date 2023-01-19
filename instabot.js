@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer-extra')
 
-const { dirname, join } = require('node:path')
+const { dirname, join } = require('path')
 
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const { default: axios } = require('axios')

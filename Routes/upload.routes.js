@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { dirname, join } = require('node:path')
+const { dirname, join } = require('path')
 const YoutubeUploader = require('../Utility/youtubeUploaderLibrary/index')
 const { db } = require('../firebase')
 const {
