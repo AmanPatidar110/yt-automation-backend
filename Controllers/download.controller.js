@@ -1,11 +1,11 @@
-const fs = require('fs')
-const download = require('download')
+import fs from 'fs'
+import download from 'download'
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path
-const Ffmpeg = require('fluent-ffmpeg')
-Ffmpeg.setFfmpegPath(ffmpegPath)
+import Ffmpeg from 'fluent-ffmpeg'
+import ffmpegPath from '@ffmpeg-installer/ffmpeg'
+Ffmpeg.setFfmpegPath(ffmpegPath.path)
 
-exports.fileDownloadWithoutAudio = async (
+export const fileDownloadWithoutAudio = async (
   url,
   videoId,
   forEmail,
@@ -46,7 +46,7 @@ exports.fileDownloadWithoutAudio = async (
   })
 }
 
-exports.removeFile = dest => {
+export const removeFile = dest => {
   return new Promise(resolve => {
     fs.unlink(dest, function (err) {
       if (err && err.code === 'ENOENT') {

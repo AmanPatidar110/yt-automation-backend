@@ -1,13 +1,11 @@
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const { default: axios } = require('axios')
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import axios from 'axios'
 
-const chromium = require('chromium')
+import chromium from 'chromium'
 
-const {
-  uploadVideosOnFirestore
-} = require('./Controllers/fireStoreUpload.controller')
-const { db } = require('./firebase')
+import { uploadVideosOnFirestore } from './Controllers/fireStoreUpload.controller.js'
+import { db } from './firebase.js'
 puppeteer.use(StealthPlugin())
 
 /** To get the proxy run below code
@@ -28,7 +26,7 @@ axios(config)
 
 **/
 
-exports.crawl = async (
+export const crawl = async (
   threadIds,
   userName,
   password,

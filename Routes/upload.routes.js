@@ -1,25 +1,21 @@
-const express = require('express')
-const router = express.Router()
-
-const { dirname, join } = require('path')
-const YoutubeUploader = require('../Utility/youtubeUploaderLibrary/index')
-const { db } = require('../firebase')
-const {
-  fileDownloadWithoutAudio,
-  removeFile
-} = require('../Controllers/download.controller')
-
-const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta')
-
-const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
-const {
-  getVideoUrlFromTiktokVideoId
-} = require('../Controllers/getVideoUrlFromTiktokVideoId')
+import express from 'express'
+import { db } from '../firebase.js'
 
 // puppeteer imports ======================
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const chromium = require('chromium')
+import puppeteerRaw from 'puppeteer'
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+
+import {
+  fileDownloadWithoutAudio,
+  removeFile
+} from '../Controllers/download.controller.js'
+import { fetchKeywordVideos } from '../Controllers/fetchKeywordVideos.js'
+import { upload } from '../Utility/youtubeUploaderLibrary/upload.js'
+import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js'
+import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js'
+
+const router = express.Router()
 puppeteer.use(StealthPlugin())
 
 router.get('/', async (req, res, next) => {
@@ -42,8 +38,7 @@ router.get('/', async (req, res, next) => {
     console.log(
       'availableCount -> before:',
       availableCount,
-      chromium.path,
-      join(dirname(chromium.path))
+      puppeteerRaw.executablePath()
     )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
@@ -66,12 +61,10 @@ router.get('/', async (req, res, next) => {
       videos.push(vid.data())
     })
 
-    const youtubeUploader = new YoutubeUploader(chromium.path, 'PRIVATE')
-
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path
+      executablePath: puppeteerRaw.executablePath()
     })
     const page = await browser.newPage()
 
@@ -96,20 +89,28 @@ router.get('/', async (req, res, next) => {
           continue
         }
         await fileDownloadWithoutAudio(
-          videoURL,
+          videoURL || '',
           video.video_id,
           email,
           video.music_info.original,
           muteAttachedMusic
         )
         videoMetaData.push({
-          Video: `Videos/${video.video_id}_${email}.mp4`,
-          Title: video.title,
-          Description: video.description + video.tags,
-          Thumbnail: '',
-          Tags: video.tags,
+          path: `Videos/${video.video_id}_${email}.mp4`,
+          title: video.title,
+          description: video.description + video.tags,
+          thumbnail: '',
+          language: 'english',
+          tags: video.tags,
           onSuccess: async () =>
-            await onVideoUploadSuccess(video.video_id, email)
+            await onVideoUploadSuccess(video.video_id, email),
+          skipProcessingWait: true,
+          onProgress: progress => {
+            console.log('progress', progress)
+          },
+          uploadAsDraft: false,
+          isAgeRestriction: false,
+          isNotForKid: true
         })
       } catch (error) {
         console.log(error)
@@ -118,13 +119,26 @@ router.get('/', async (req, res, next) => {
     browser.close()
     console.log('Videos downloaded locally. Now, Uploading ...')
 
-    await youtubeUploader.Login(email, channel.password)
-    console.log('LoggedIn to your account and muting audio')
-    await youtubeUploader.UploadVideos(videoMetaData)
+    const credentials = {
+      email,
+      pass: channel.password,
+      recoveryemail: 'aamanpatidar110@gmail.com'
+    }
+    const resp = await upload(credentials, videoMetaData, {
+      executablePath: puppeteerRaw.executablePath(),
+      headless: false,
+      ignoreHTTPSErrors: true,
+      defaultViewport: null,
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--enable-webgl',
+        '--start-maximized'
+      ]
+    })
 
-    console.log('Uploading successfully!')
-    const UPLOAD_COUNT = await youtubeUploader.CloseBrowser()
-    res.status(200).json({ msg: 'Videos uploaded', UPLOAD_COUNT })
+    console.log('Uploading successfully!', resp)
+    res.status(200).json({ msg: 'Videos uploaded', resp })
   } catch (e) {
     console.log(e)
   }
@@ -138,4 +152,4 @@ const onVideoUploadSuccess = async (videoId, email) => {
   await removeFile(`Videos/${videoId}_${email}.mp4`)
 }
 
-module.exports = router
+export default router

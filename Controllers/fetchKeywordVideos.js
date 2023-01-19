@@ -1,7 +1,7 @@
-const { default: axios } = require('axios')
-const apiKey = require('../Constants/keys')
-const { db } = require('../firebase')
-const { uploadVideosOnFirestore } = require('./fireStoreUpload.controller')
+import axios from 'axios'
+import { apiKey } from '../Constants/keys.js'
+import { db } from '../firebase.js'
+import { uploadVideosOnFirestore } from './fireStoreUpload.controller.js'
 
 const getApiKey = FETCH_COUNT => {
   return apiKey[FETCH_COUNT % 10]
@@ -12,7 +12,7 @@ const updateApiCount = async currentCount => {
   return currentCount + 1
 }
 
-exports.fetchKeywordVideos = async (forEmail, keywords, forUser) => {
+export const fetchKeywordVideos = async (forEmail, keywords, forUser) => {
   const keyword = keywords[Math.floor(Math.random() * keywords.length)]
   const constantsRef = db.collection('constants').doc('Up8smqy8uZukjhDBCus9')
 

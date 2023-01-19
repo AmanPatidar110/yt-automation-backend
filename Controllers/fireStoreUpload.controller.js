@@ -1,6 +1,6 @@
-const { db } = require('../firebase')
+import { db } from '../firebase.js'
 
-exports.uploadVideosOnFirestore = async (
+export const uploadVideosOnFirestore = async (
   videos,
   forEmail,
   keyword,

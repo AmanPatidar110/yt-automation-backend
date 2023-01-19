@@ -1,12 +1,12 @@
 // puppeteer imports ======================
-const chromium = require('chromium')
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+import chromium from 'chromium'
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 puppeteer.use(StealthPlugin())
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
-exports.getVideoUrlForInsta = async videoId => {
+export const getVideoUrlForInsta = async videoId => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
