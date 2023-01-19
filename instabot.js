@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const { default: axios } = require('axios')
 
-const { executablePath } = require('puppeteer')
+const chromium = require('chromium')
 
 const {
   uploadVideosOnFirestore
@@ -44,7 +44,7 @@ exports.crawl = async (
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: executablePath()
+      executablePath: chromium.path
       // args: ["--proxy-server=http://66.29.128.245:17861"],
     })
     const page = await browser.newPage()

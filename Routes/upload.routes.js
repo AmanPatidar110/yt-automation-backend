@@ -14,11 +14,11 @@ const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
 const {
   getVideoUrlFromTiktokVideoId
 } = require('../Controllers/getVideoUrlFromTiktokVideoId')
-const { executablePath } = require('puppeteer')
 
 // puppeteer imports ======================
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const chromium = require('chromium')
 puppeteer.use(StealthPlugin())
 
 router.get('/', async (req, res, next) => {
@@ -68,7 +68,7 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: executablePath()
+      executablePath: chromium.path
     })
     const page = await browser.newPage()
 
