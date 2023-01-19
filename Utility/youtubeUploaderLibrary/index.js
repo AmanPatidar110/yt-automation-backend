@@ -44,6 +44,7 @@ class YoutubeUploader {
   // For opening the chromium browser
   OpenBrowser = async directory => {
     try {
+      console.log('Launching browser')
       return await Puppeteer.launch({
         headless: false,
         defaultViewport: null,
@@ -62,6 +63,8 @@ class YoutubeUploader {
   // For close the browser at the end
   CloseBrowser = async () => {
     try {
+      console.log('Closing browser')
+
       await this.MainPage.close()
       await this.Browser.close()
       FSExtra.removeSync(rootDir)
@@ -74,20 +77,29 @@ class YoutubeUploader {
   // For logging you into youtube studio
   Login = async (Email, Password) => {
     try {
+      console.log('Logging in')
+
       FSExtra.removeSync(rootDir)
       this.Browser = await this.OpenBrowser(rootDir)
       this.MainPage = await this.Browser.newPage()
       await this.MainPage.goto('https://studio.youtube.com/')
+      console.log('Typing email')
+
       await this.MainPage.type('input[type="email"]', Email, {
         delay: 100
       })
-      await Delay(3000)
       await this.MainPage.keyboard.press('Enter')
-      await Delay(5000)
+      await Delay(3000)
+      console.log('Waiting for password input')
+      // await this.MainPage.waitForNetworkIdle({ idleTime: 2000 })
+      await getElement('input[type="password"]', this.MainPage, true)
+      console.log('Typing password')
       await this.MainPage.type('input[type="password"]', Password, {
-        delay: 100
+        delay: 60
       })
       await this.MainPage.keyboard.press('Enter')
+      await Delay(3000)
+
       await this.MainPage.waitForNavigation()
     } catch (err) {
       return console.log(err)
@@ -107,7 +119,7 @@ class YoutubeUploader {
       }
 
       try {
-        await this.MainPage.waitForTimeout(5000)
+        await Delay(5000)
         await this.MainPage.goto('https://youtube.com/upload/')
 
         // Upload video
@@ -118,35 +130,35 @@ class YoutubeUploader {
         )
         await submitFileBtn.uploadFile(Video)
 
-        // Import title
-        const titleBox = await getElement('#textbox', this.MainPage, true)
-        await titleBox.click()
-        await Delay(800)
-        await this.MainPage.evaluate(() =>
-          document.execCommand('selectall', false, null)
-        )
-        await Delay(3000)
-        await this.MainPage.keyboard.type(Title.substr(0, 100), {
-          delay: 50
-        })
-        await Delay(4000)
-
-        // Import description
-        const descriptionBox = await getElement(
-          'ytcp-social-suggestions-textbox[id="description-textarea"]',
-          this.MainPage
-        )
-
-        await descriptionBox.click()
-        await Delay(900)
-        await this.MainPage.evaluate(() =>
-          document.execCommand('selectall', false, null)
-        )
         await Delay(2000)
-        await this.MainPage.keyboard.type(Description.substr(0, 5000), {
-          delay: 70
+        const popupExists = await this.MainPage.$eval(
+          '#close-button > div',
+          () => true
+        ).catch(() => false)
+        if (popupExists) {
+          const popup = await getElement('#close-button > div', this.MainPage)
+          await popup.click()
+        }
+
+        // Import title
+        await this.MainPage.waitForFunction(
+          'document.querySelectorAll(\'[id="textbox"]\').length > 1'
+        )
+        const textBoxes = await this.MainPage.$x('//*[@id="textbox"]')
+        await this.MainPage.bringToFront()
+        // Add the title value
+        await textBoxes[0].focus()
+        await this.MainPage.waitForTimeout(1000)
+        await textBoxes[0].evaluate(e => (e.__shady_native_textContent = ''))
+        await textBoxes[0].type(Title.substring(0, 80), {
+          delay: 20
         })
-        await Delay(5000)
+
+        // Add the Description content
+        await textBoxes[0].evaluate(e => (e.__shady_native_textContent = ''))
+        await textBoxes[1].type(Description.substring(0, 4950), {
+          delay: 20
+        })
 
         if (Thumbnails) {
           // Import thumbnails
@@ -160,7 +172,6 @@ class YoutubeUploader {
         }
 
         // Make it not for kids
-
         const ageRestrictionEl = await getElement(
           'tp-yt-paper-radio-button[name="VIDEO_MADE_FOR_KIDS_NOT_MFK"]',
           this.MainPage
@@ -191,9 +202,9 @@ class YoutubeUploader {
         )
         await Delay(1000)
         await this.MainPage.keyboard.type(Tags.substr(0, 500), {
-          delay: 100
+          delay: 30
         })
-        await Delay(10000)
+        await Delay(1000)
 
         // Keep clicking next till the end
         const nextBtn = await getElement(
@@ -208,14 +219,14 @@ class YoutubeUploader {
 
         while (!PrivacyText) {
           await nextBtn.click()
-          await Delay(1000)
+          await Delay(4000)
           PrivacyText = await getElement(
             `tp-yt-paper-radio-button[name="${this.privacy}"]`,
             this.MainPage
           )
         }
 
-        // Make video public
+        // Make video public/private
         const privacyBtn = await getElement(
           `tp-yt-paper-radio-button[name="${this.privacy}"]`,
           this.MainPage
@@ -246,7 +257,7 @@ class YoutubeUploader {
         await onSuccess()
         UPLOAD_COUNT++
       } catch (err) {
-        return console.log(err)
+        console.log(err)
       }
     }
     return UPLOAD_COUNT
