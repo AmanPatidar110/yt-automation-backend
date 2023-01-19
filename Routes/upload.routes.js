@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
+const { dirname, join } = require('node:path')
 const YoutubeUploader = require('../Utility/youtubeUploaderLibrary/index')
 const { db } = require('../firebase')
 const {
@@ -38,7 +39,11 @@ router.get('/', async (req, res, next) => {
       .where('forUser', '==', forUser)
       .where('uploaded', '==', false)
     let availableCount = (await query.count().get()).data().count
-    console.log('availableCount -> before:', availableCount)
+    console.log(
+      'availableCount -> before:',
+      availableCount,
+      join(dirname(chromium.path), 'chrome.exe')
+    )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
         await fetchKeywordVideos(email, channel.keywords, forUser)
@@ -68,7 +73,7 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path
+      executablePath: join(dirname(chromium.path), 'chrome.exe')
     })
     const page = await browser.newPage()
 

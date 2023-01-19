@@ -3,6 +3,7 @@ const chromium = require('chromium')
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
+const { dirname, join } = require('node:path')
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
@@ -11,7 +12,7 @@ exports.getVideoUrlForInsta = async videoId => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path
+      executablePath: join(dirname(chromium.path), 'chrome.exe')
     })
     const page = await browser.newPage()
     await page.goto('https://saveinsta.app/en/instagram-reels-video-download', {
