@@ -126,9 +126,8 @@ router.get('/', async (req, res, next) => {
     }
     const resp = await upload(credentials, videoMetaData, {
       executablePath: puppeteerRaw.executablePath(),
-      headless: false,
+      headless: true,
       ignoreHTTPSErrors: true,
-      defaultViewport: null,
       args: [
         '--no-sandbox',
         '--disable-gpu',

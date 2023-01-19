@@ -60,6 +60,8 @@ export const upload = async (
   const uploadedYTLink = []
 
   for (const video of videos) {
+    await page.setViewport({ width: 1280, height: 720 })
+
     const link = await uploadVideo(video, messageTransport)
 
     const { onSuccess } = video
@@ -1003,7 +1005,6 @@ async function login (localPage, credentials, messageTransport) {
   await localPage.waitForTimeout(1000)
   await localPage.waitForXPath('//*[@id="gb"]/div/div[1]/a')
   await localPage.click('#gb > div > div.gb_Ve > a')
-
   const newP = await browser.newPage()
   await newP.setBypassCSP(false)
   const ua =

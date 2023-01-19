@@ -2,8 +2,6 @@ import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import axios from 'axios'
 
-import chromium from 'chromium'
-
 import { uploadVideosOnFirestore } from './Controllers/fireStoreUpload.controller.js'
 import { db } from './firebase.js'
 puppeteer.use(StealthPlugin())
@@ -41,7 +39,7 @@ export const crawl = async (
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path
+      executablePath: puppeteer.executablePath()
       // args: ["--proxy-server=http://66.29.128.245:17861"],
     })
     const page = await browser.newPage()
