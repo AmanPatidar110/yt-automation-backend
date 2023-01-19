@@ -42,7 +42,8 @@ router.get('/', async (req, res, next) => {
     console.log(
       'availableCount -> before:',
       availableCount,
-      join(dirname(chromium.path), 'chrome.exe')
+      chromium.path,
+      join(dirname(chromium.path))
     )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
@@ -73,7 +74,7 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: join(dirname(chromium.path), 'chrome.exe')
+      executablePath: chromium.path
     })
     const page = await browser.newPage()
 
