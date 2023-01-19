@@ -144,11 +144,15 @@ router.get('/', async (req, res, next) => {
 })
 
 const onVideoUploadSuccess = async (videoId, email) => {
-  await db.collection('videos').doc(videoId).update({
-    uploaded: true
-  })
+  try {
+    await db.collection('videos').doc(videoId).update({
+      uploaded: true
+    })
 
-  await removeFile(`Videos/${videoId}_${email}.mp4`)
+    await removeFile(`Videos/${videoId}_${email}.mp4`)
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export default router
