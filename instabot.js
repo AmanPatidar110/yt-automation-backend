@@ -77,7 +77,10 @@ exports.crawl = async (
               video_id: item?.clip?.clip?.code || item?.media_share?.code,
               title:
                 item?.clip?.clip?.caption?.text ||
-                item?.media_share?.caption?.text
+                item?.media_share?.caption?.text,
+              author: {
+                unique_id: item?.media_share?.user?.username || 'instagram_user'
+              }
             }))
 
           videos.push(threadVideos)

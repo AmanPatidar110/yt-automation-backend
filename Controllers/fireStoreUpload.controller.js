@@ -22,8 +22,20 @@ exports.uploadVideosOnFirestore = async (
           forUser,
           keyword,
           title: video.title.substr(0, 75),
-          description: video.title,
-          tags: [...video.title.split('#'), ...channelKeywords]
+          description: `
+            Video credit goes to: @${video.author.unique_id} (${source}) 
+            \n For removal request please refer this email: ${forEmail} 
+            \n  ${video.title}
+          `,
+          tags: [
+            ...video.title.split('#'),
+            ...channelKeywords,
+            'short',
+            'shorts',
+            'shorts_video',
+            'shortsfeed',
+            'trending'
+          ]
             .join(', #')
             .substr(0, 450),
           uploaded: false,
