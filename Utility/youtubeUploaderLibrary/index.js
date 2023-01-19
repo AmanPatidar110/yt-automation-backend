@@ -52,7 +52,7 @@ class YoutubeUploader {
         ignoreDefaultArgs: ['--disable-extensions'],
         executablePath: this.chromiumPath,
         env: {
-          DISPLAY: this.display
+          DISPLAY: this.display || ':10.0'
         }
       })
     } catch (err) {
