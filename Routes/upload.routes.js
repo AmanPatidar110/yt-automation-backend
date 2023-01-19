@@ -66,10 +66,7 @@ router.get('/', async (req, res, next) => {
       videos.push(vid.data())
     })
 
-    const youtubeUploader = new YoutubeUploader(
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'PRIVATE'
-    )
+    const youtubeUploader = new YoutubeUploader(chromium.path, 'PRIVATE')
 
     const browser = await puppeteer.launch({
       headless: true,
