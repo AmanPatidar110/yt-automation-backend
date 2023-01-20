@@ -5,7 +5,7 @@
     "type": "module",
     "main": "script.js",
     "engines": {
-        "node": "14.x"
+        "node": "18.x"
     },
     "scripts": {
         "start": "node script.js",
