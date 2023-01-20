@@ -5,9 +5,12 @@
     "type": "module",
     "main": "script.js",
     "engines": {
-        "node": "18.x"
+        "node": "14.x"
     },
     "scripts": {
+        "start": "node script.js",
+        "build": "node script.js",
+        "start-dev": "nodemon script.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
