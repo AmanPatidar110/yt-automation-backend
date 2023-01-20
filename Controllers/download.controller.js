@@ -3,7 +3,9 @@ import download from 'download'
 
 import Ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from '@ffmpeg-installer/ffmpeg'
+import ffprobePath from '@ffprobe-installer/ffprobe'
 Ffmpeg.setFfmpegPath(ffmpegPath.path)
+Ffmpeg.setFfprobePath(ffprobePath.path)
 
 export const fileDownloadWithoutAudio = async (
   url,
