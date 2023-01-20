@@ -2,10 +2,10 @@
    "version": 2,
    "name": "yt-automation-backend",
    "builds": [
-      { "src": "script.js", "use": "@vercel/node" }
+      { "src": "./script.js", "use": "@vercel/node" }
    ],
    "routes": [
-      { "src": "/(.*)", "dest": "/script.js" }
+      { "src": "/(.*)", "dest": "/" }
    ],
    "buildCommand": "node /node_modules/puppeteer-core/install"
  }
