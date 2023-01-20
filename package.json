@@ -19,7 +19,8 @@
         "@ffmpeg-installer/ffmpeg": "^1.1.0",
         "axios": "^1.2.2",
         "canvas": "^2.11.0",
-        "cheerio": "^1.0.0-rc.12", 
+        "cheerio": "^1.0.0-rc.12",
+        "chromium": "^3.0.3",
         "cors": "^2.8.5",
         "delay": "^5.0.0",
         "download": "^8.0.0",
@@ -35,5 +36,5 @@
     },
     "pkg": {
         "assets": "node_modules/puppeteer-extra-plugin-stealth/**/*.*"
-      }
+    }
 }

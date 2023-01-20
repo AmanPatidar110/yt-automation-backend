@@ -1,5 +1,5 @@
 // puppeteer imports ======================
-import puppeteerRaw from 'puppeteer'
+import chromium from 'chromium'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 puppeteer.use(StealthPlugin())
@@ -11,7 +11,7 @@ export const getVideoUrlForInsta = async videoId => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath(),
+      executablePath: chromium.path,
       args: ['--no-sandbox']
     })
     const page = await browser.newPage()

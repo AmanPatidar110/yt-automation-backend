@@ -5,6 +5,7 @@ import axios from 'axios'
 
 import { uploadVideosOnFirestore } from './Controllers/fireStoreUpload.controller.js'
 import { db } from './firebase.js'
+import chromium from 'chromium'
 puppeteer.use(StealthPlugin())
 
 /** To get the proxy run below code
@@ -40,7 +41,7 @@ export const crawl = async (
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath(),
+      executablePath: chromium.path,
       args: ['--no-sandbox']
       // args: ["--proxy-server=http://66.29.128.245:17861"],
     })
