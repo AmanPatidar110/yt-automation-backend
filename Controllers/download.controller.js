@@ -1,12 +1,7 @@
 import fs from 'fs'
 import download from 'download'
 
-import Ffmpeg from 'fluent-ffmpeg'
-import ffmpegPath from '@ffmpeg-installer/ffmpeg'
-import ffprobePath from '@ffprobe-installer/ffprobe'
-Ffmpeg.setFfmpegPath(ffmpegPath.path)
-Ffmpeg.setFfprobePath(ffprobePath.path)
-
+import ffmpeg from '../Utility/FFMpeg/ffMpeg.js'
 export const fileDownloadWithoutAudio = async (
   url,
   videoId,
@@ -18,7 +13,7 @@ export const fileDownloadWithoutAudio = async (
     console.log('Downloading...')
     if (isOriginal || muteAttachedMusic === 'false') {
       console.log('Downloading video with music')
-      Ffmpeg(
+      ffmpeg(
         download(url)
           .on('end', () => {
             console.log('Downloaded')
@@ -33,7 +28,7 @@ export const fileDownloadWithoutAudio = async (
         .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
     } else {
       console.log('Downloading video without music')
-      Ffmpeg(
+      ffmpeg(
         download(url)
           .on('end', () => {
             console.log('Downloaded')

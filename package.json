@@ -16,8 +16,6 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@ffmpeg-installer/ffmpeg": "^1.1.0",
-        "@ffprobe-installer/ffprobe": "^1.4.1",
         "axios": "^1.2.2",
         "canvas": "^2.11.0",
         "cheerio": "^1.0.0-rc.12",
@@ -26,6 +24,7 @@
         "delay": "^5.0.0",
         "download": "^8.0.0",
         "express": "^4.18.2",
+        "ffmpeg-static": "^5.1.0",
         "firebase-admin": "^11.4.1",
         "fluent-ffmpeg": "^2.1.2",
         "fs-extra": "^11.1.0",
@@ -33,6 +32,9 @@
         "puppeteer-extra-plugin-stealth": "^2.11.1"
     },
     "pkg": {
-        "assets": "node_modules/puppeteer-extra-plugin-stealth/**/*.*"
+        "assets": [
+            "node_modules/puppeteer-extra-plugin-stealth/**/*.*",
+            "node_modules/@ffmpeg-installer/**/*.*"
+        ]
     }
 }
