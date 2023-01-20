@@ -1,11 +1,11 @@
-import puppeteer from 'puppeteer-extra'
 import fs from 'fs-extra'
 import path from 'path'
 
+import chromium from 'chrome-aws-lambda'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import { addExtra } from 'puppeteer-extra'
 StealthPlugin().enabledEvasions.delete('iframe.contentWindow')
 StealthPlugin().enabledEvasions.delete('navigator.plugins')
-puppeteer.use(StealthPlugin())
 
 const ProgressEnum = {
   Uploading: 'Uploading',
@@ -975,8 +975,9 @@ async function changeHomePageLangIfNeeded (localPage) {
 
 async function launchBrowser (puppeteerLaunch) {
   const previousSession = fs.existsSync(cookiesFilePath)
-
-  browser = await puppeteer.launch(puppeteerLaunch)
+  const puppeteerExtra = addExtra(chromium.puppeteer)
+  puppeteerExtra.use(StealthPlugin())
+  browser = await puppeteerExtra.launch(puppeteerLaunch)
   page = await browser.newPage()
   await page.setDefaultTimeout(timeout)
   if (previousSession) {

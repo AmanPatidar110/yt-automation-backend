@@ -1,7 +1,6 @@
 import fs from 'fs'
 import download from 'download'
 
-import ffmpeg from '../Utility/FFMpeg/ffMpeg.js'
 export const fileDownloadWithoutAudio = async (
   url,
   videoId,
@@ -9,40 +8,48 @@ export const fileDownloadWithoutAudio = async (
   isOriginal,
   muteAttachedMusic
 ) => {
+  const videoWriteStream = fs.createWriteStream(
+    `./Videos/${videoId}_${forEmail}.mp4`
+  )
   return new Promise((resolve, reject) => {
     console.log('Downloading...')
-    if (isOriginal || muteAttachedMusic === 'false') {
-      console.log('Downloading video with music')
-      ffmpeg(
-        download(url)
-          .on('end', () => {
-            console.log('Downloaded')
-            resolve()
-          })
-          .on('error', err => {
-            console.log(err)
-            reject(err)
-          })
-      )
-        .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
-        .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
-    } else {
-      console.log('Downloading video without music')
-      ffmpeg(
-        download(url)
-          .on('end', () => {
-            console.log('Downloaded')
-            resolve()
-          })
-          .on('error', err => {
-            console.log(err)
-            reject(err)
-          })
-      )
-        .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
-        .withNoAudio()
-        .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
-    }
+    download(url)
+      .pipe(videoWriteStream)
+      .on('end', () => {
+        console.log('Downloaded')
+        resolve()
+      })
+    // if (isOriginal || muteAttachedMusic === 'false') {
+    //   console.log('Downloading video with music')
+    //   ffmpeg(
+    //       .on('end', () => {
+    //         console.log('Downloaded')
+    //         resolve()
+    //       })
+    //       .on('error', err => {
+    //         console.log(err)
+    //         reject(err)
+    //       })
+    //   )
+    //     .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
+    //     .saveToFile()
+    // } else {
+    //   console.log('Downloading video without music')
+    //   ffmpeg(
+    //     download(url)
+    //       .on('end', () => {
+    //         console.log('Downloaded')
+    //         resolve()
+    //       })
+    //       .on('error', err => {
+    //         console.log(err)
+    //         reject(err)
+    //       })
+    //   )
+    //     .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
+    //     .withNoAudio()
+    //     .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
+    // }
   })
 }
 

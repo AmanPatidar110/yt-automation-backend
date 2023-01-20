@@ -2,7 +2,6 @@ import express from 'express'
 import { db } from '../firebase.js'
 
 // puppeteer imports ======================
-import puppeteer from 'puppeteer-extra'
 
 import {
   fileDownloadWithoutAudio,
@@ -35,7 +34,7 @@ import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import chromium from 'chrome-aws-lambda'
-puppeteer.use(StealthPlugin())
+import { addExtra } from 'puppeteer-extra'
 
 const router = express.Router()
 
@@ -81,12 +80,12 @@ router.get('/', async (req, res, next) => {
     snapshot2.forEach(vid => {
       videos.push(vid.data())
     })
-
-    const browser = await puppeteer.launch({
+    const puppeteerExtra = addExtra(chromium.puppeteer)
+    puppeteerExtra.use(StealthPlugin())
+    const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath,
-      args: ['--no-sandbox']
+      executablePath: await chromium.executablePath
     })
     const page = await browser.newPage()
 
