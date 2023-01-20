@@ -6,5 +6,6 @@
    ],
    "routes": [
       { "src": "/(.*)", "dest": "/script.js" }
-   ]
+   ],
+   "buildCommand": "node /node_modules/puppeteer-core/install"
  }
