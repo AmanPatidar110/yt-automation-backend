@@ -1,6 +1,7 @@
-const express = require('express')
+import express from 'express'
+import { db } from '../firebase.js'
+
 const router = express.Router()
-const { db } = require('../firebase')
 
 router.post('/add_channel', async (req, res, next) => {
   try {
@@ -78,4 +79,4 @@ router.delete('/delete_channel', async (req, res, next) => {
   }
 })
 
-module.exports = router
+export default router

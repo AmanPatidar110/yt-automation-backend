@@ -1,26 +1,41 @@
-const express = require('express')
-const router = express.Router()
-
-const { dirname, join } = require('path')
-const YoutubeUploader = require('../Utility/youtubeUploaderLibrary/index')
-const { db } = require('../firebase')
-const {
-  fileDownloadWithoutAudio,
-  removeFile
-} = require('../Controllers/download.controller')
-
-const { getVideoUrlForInsta } = require('../Controllers/getVideoUrlForInsta')
-
-const { fetchKeywordVideos } = require('../Controllers/fetchKeywordVideos')
-const {
-  getVideoUrlFromTiktokVideoId
-} = require('../Controllers/getVideoUrlFromTiktokVideoId')
+import express from 'express'
+import { db } from '../firebase.js'
 
 // puppeteer imports ======================
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const chromium = require('chromium')
-puppeteer.use(StealthPlugin())
+
+import {
+  fileDownloadWithoutAudio,
+  removeFile
+} from '../Controllers/download.controller.js'
+import { fetchKeywordVideos } from '../Controllers/fetchKeywordVideos.js'
+import { upload } from '../Utility/youtubeUploaderLibrary/upload.js'
+import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js'
+import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js'
+
+import 'puppeteer-extra-plugin-user-data-dir'
+import 'puppeteer-extra-plugin-user-preferences'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.app/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.csi/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.runtime/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/defaultArgs/index.js' // pkg warned me this one was missing
+import 'puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/media.codecs/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.languages/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.permissions/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.plugins/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.vendor/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.webdriver/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/sourceurl/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
+
+import chromium from 'chrome-aws-lambda'
+import { puppeteerExtra } from '../Utility/getPuppeteer.js'
+
+const router = express.Router()
 
 router.get('/', async (req, res, next) => {
   try {
@@ -42,8 +57,7 @@ router.get('/', async (req, res, next) => {
     console.log(
       'availableCount -> before:',
       availableCount,
-      chromium.path,
-      join(dirname(chromium.path))
+      await chromium.executablePath
     )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
@@ -65,18 +79,15 @@ router.get('/', async (req, res, next) => {
     snapshot2.forEach(vid => {
       videos.push(vid.data())
     })
-
-    const youtubeUploader = new YoutubeUploader(chromium.path, 'PRIVATE')
-
-    const browser = await puppeteer.launch({
+    const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path
+      executablePath: await chromium.executablePath
     })
     const page = await browser.newPage()
 
     for (const video of videos) {
-      console.log(video.video_id, '=>', targetUploadCount)
+      console.log(video.video_id, '=>', 'fetching download url...')
 
       let videoURL = ''
       try {
@@ -103,13 +114,21 @@ router.get('/', async (req, res, next) => {
           muteAttachedMusic
         )
         videoMetaData.push({
-          Video: `Videos/${video.video_id}_${email}.mp4`,
-          Title: video.title,
-          Description: video.description + video.tags,
-          Thumbnail: '',
-          Tags: video.tags,
+          path: `Videos/${video.video_id}_${email}.mp4`,
+          title: video.title,
+          description: video.description + video.tags,
+          thumbnail: '',
+          language: 'english',
+          tags: video.tags,
           onSuccess: async () =>
-            await onVideoUploadSuccess(video.video_id, email)
+            await onVideoUploadSuccess(video.video_id, email),
+          skipProcessingWait: true,
+          onProgress: progress => {
+            console.log('progress', progress)
+          },
+          uploadAsDraft: false,
+          isAgeRestriction: false,
+          isNotForKid: true
         })
       } catch (error) {
         console.log(error)
@@ -118,24 +137,40 @@ router.get('/', async (req, res, next) => {
     browser.close()
     console.log('Videos downloaded locally. Now, Uploading ...')
 
-    await youtubeUploader.Login(email, channel.password)
-    console.log('LoggedIn to your account and muting audio')
-    await youtubeUploader.UploadVideos(videoMetaData)
+    const credentials = {
+      email,
+      pass: channel.password,
+      recoveryemail: 'aamanpatidar110@gmail.com'
+    }
+    const resp = await upload(credentials, videoMetaData, {
+      executablePath: await chromium.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--enable-webgl',
+        '--start-maximized'
+      ]
+    })
 
-    console.log('Uploading successfully!')
-    const UPLOAD_COUNT = await youtubeUploader.CloseBrowser()
-    res.status(200).json({ msg: 'Videos uploaded', UPLOAD_COUNT })
+    console.log('Uploading successfully!', resp)
+    res.status(200).json({ msg: 'Videos uploaded', resp })
   } catch (e) {
     console.log(e)
   }
 })
 
 const onVideoUploadSuccess = async (videoId, email) => {
-  await db.collection('videos').doc(videoId).update({
-    uploaded: true
-  })
+  try {
+    await db.collection('videos').doc(videoId).update({
+      uploaded: true
+    })
 
-  await removeFile(`Videos/${videoId}_${email}.mp4`)
+    await removeFile(`Videos/${videoId}_${email}.mp4`)
+  } catch (error) {
+    console.log(error)
+  }
 }
 
-module.exports = router
+export default router

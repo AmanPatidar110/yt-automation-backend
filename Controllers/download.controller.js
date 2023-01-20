@@ -1,52 +1,31 @@
-const fs = require('fs')
-const download = require('download')
+import fs from 'fs'
+import download from 'download'
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path
-const Ffmpeg = require('fluent-ffmpeg')
-Ffmpeg.setFfmpegPath(ffmpegPath)
-
-exports.fileDownloadWithoutAudio = async (
+export const fileDownloadWithoutAudio = async (
   url,
   videoId,
   forEmail,
   isOriginal,
   muteAttachedMusic
 ) => {
+  const videoWriteStream = fs.createWriteStream(
+    `./Videos/${videoId}_${forEmail}.mp4`
+  )
   return new Promise((resolve, reject) => {
     console.log('Downloading...')
-    if (isOriginal || muteAttachedMusic === 'false') {
-      console.log('Downloading video with music')
-      Ffmpeg(
-        download(url)
-          .on('end', () => {
-            console.log('Downloaded')
-            resolve()
-          })
-          .on('error', err => {
-            console.log(err)
-            reject(err)
-          })
-      ).saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
-    } else {
-      console.log('Downloading video without music')
-      Ffmpeg(
-        download(url)
-          .on('end', () => {
-            console.log('Downloaded')
-            resolve()
-          })
-          .on('error', err => {
-            console.log(err)
-            reject(err)
-          })
-      )
-        .withNoAudio()
-        .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
-    }
+    download(url)
+      .on('progress', progress => {
+        console.log('progress: ', progress)
+      })
+      .on('end', () => {
+        console.log('Downloaded')
+        resolve()
+      })
+      .pipe(videoWriteStream)
   })
 }
 
-exports.removeFile = dest => {
+export const removeFile = dest => {
   return new Promise(resolve => {
     fs.unlink(dest, function (err) {
       if (err && err.code === 'ENOENT') {

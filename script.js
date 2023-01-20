@@ -1,10 +1,10 @@
-const express = require('express')
-const http = require('http')
-const cors = require('cors')
+import express from 'express'
+import http from 'http'
+import cors from 'cors'
 
-const uploadRoutes = require('./Routes/upload.routes')
-const channelRoutes = require('./Routes/channel.routes')
-const instaRoutes = require('./Routes/insta.routes')
+import uploadRoutes from './Routes/upload.routes.js'
+import channelRoutes from './Routes/channel.routes.js'
+import instaRoutes from './Routes/insta.routes.js'
 
 const app = express()
 app.use(cors())

@@ -1,4 +1,4 @@
-const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
+export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
   try {
     await page.goto('https://tiktokdownload.online/', {
       waitUntil: 'networkidle2'
@@ -23,8 +23,4 @@ const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
   } catch (error) {
     console.log(error)
   }
-}
-
-module.exports = {
-  getVideoUrlFromTiktokVideoId
 }

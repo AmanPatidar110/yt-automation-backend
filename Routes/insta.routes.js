@@ -1,7 +1,8 @@
-const express = require('express')
+import express from 'express'
+import { crawl } from '../instabot.js'
+import { db } from '../firebase.js'
+
 const router = express.Router()
-const { crawl } = require('../instabot')
-const { db } = require('../firebase')
 
 router.post('/add_insta_account', async (req, res, next) => {
   try {
@@ -110,4 +111,4 @@ router.delete('/delete_insta_account', async (req, res, next) => {
     return next(error)
   }
 })
-module.exports = router
+export default router
