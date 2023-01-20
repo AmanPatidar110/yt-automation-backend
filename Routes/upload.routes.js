@@ -1,6 +1,7 @@
 import express from 'express'
 import { db } from '../firebase.js'
 
+import { dirname } from 'path'
 // puppeteer imports ======================
 import puppeteerRaw from 'puppeteer'
 import puppeteer from 'puppeteer-extra'
@@ -38,7 +39,7 @@ router.get('/', async (req, res, next) => {
     console.log(
       'availableCount -> before:',
       availableCount,
-      puppeteerRaw.executablePath()
+      dirname(puppeteerRaw.executablePath())
     )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
@@ -64,7 +65,7 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath()
+      executablePath: dirname(puppeteerRaw.executablePath())
     })
     const page = await browser.newPage()
 
