@@ -14,6 +14,7 @@ import { upload } from '../Utility/youtubeUploaderLibrary/upload.js'
 import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js'
 import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js'
 
+import 'puppeteer-extra-plugin-user-preferences'
 import 'puppeteer-extra-plugin-stealth/evasions/chrome.app/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/chrome.csi/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes/index.js'

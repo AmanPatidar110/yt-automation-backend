@@ -32,5 +32,8 @@
         "puppeteer-extra": "^3.3.4",
         "puppeteer-extra-plugin-anonymize-ua": "^2.4.4",
         "puppeteer-extra-plugin-stealth": "^2.11.1"
-    }
+    },
+    "pkg": {
+        "assets": "node_modules/puppeteer-extra-plugin-stealth/**/*.*"
+      }
 }
