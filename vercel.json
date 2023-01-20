@@ -6,6 +6,5 @@
   ],
   "routes": [
      { "src": "/(.*)", "dest": "/" }
-  ],
-  "installCommand": "npm install"
+  ]
 }
