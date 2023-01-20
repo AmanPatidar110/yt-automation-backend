@@ -44,7 +44,14 @@ router.get('/', async (req, res, next) => {
     const email = req.query.email
     const targetUploadCount = req.query.targetUploadCount
 
-    console.log('uploading videos', forUser, email, targetUploadCount)
+    console.log(
+      'uploading videos',
+      forUser,
+      email,
+      targetUploadCount,
+      chromium.args,
+      chromium.headless
+    )
 
     const channelResponse = await axios.request({
       method: 'GET',
@@ -87,12 +94,7 @@ router.get('/', async (req, res, next) => {
       headless: true,
       ignoreHTTPSErrors: true,
       executablePath: await chromium.executablePath,
-      args: [
-        '--no-sandbox',
-        '--disable-gpu',
-        '--enable-webgl',
-        '--start-maximized'
-      ]
+      args: chromium.args
     })
     const page = await browser.newPage()
 
@@ -155,12 +157,7 @@ router.get('/', async (req, res, next) => {
       executablePath: await chromium.executablePath,
       headless: true,
       ignoreHTTPSErrors: true,
-      args: [
-        '--no-sandbox',
-        '--disable-gpu',
-        '--enable-webgl',
-        '--start-maximized'
-      ]
+      args: chromium.args
     })
 
     console.log('Uploading successfully!', resp)
