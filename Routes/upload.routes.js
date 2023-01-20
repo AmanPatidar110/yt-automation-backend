@@ -39,6 +39,7 @@ import { apiServiceUrl } from '../Utility/api-service.js'
 const router = express.Router()
 
 router.get('/', async (req, res, next) => {
+  res.status(200).json({ msg: 'Videos uploaded' })
   try {
     const forUser = req.query.forUser
     const email = req.query.email
@@ -160,7 +161,7 @@ router.get('/', async (req, res, next) => {
     })
 
     console.log('Uploading successfully!', resp)
-    res.status(200).json({ msg: 'Videos uploaded', resp })
+    // res.status(200).json({ msg: 'Videos uploaded', resp })
   } catch (e) {
     console.log(e)
   }
