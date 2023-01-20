@@ -1,9 +1,8 @@
 import axios from 'axios'
 
-import { uploadVideosOnFirestore } from './Controllers/fireStoreUpload.controller.js'
-import { db } from './firebase.js'
 import chromium from 'chrome-aws-lambda'
 import { puppeteerExtra } from './Utility/getPuppeteer.js'
+import { apiServiceUrl } from './Utility/api-service.js'
 
 /** To get the proxy run below code
 
@@ -32,8 +31,11 @@ export const crawl = async (
 ) => {
   let FETCH_COUNT = 0
   try {
-    const channelRef = db.collection('channels').doc(forChannelEmail)
-    const channel = (await channelRef.get()).data()
+    const response = await axios.request({
+      method: 'GET',
+      url: `${apiServiceUrl}/channel/get_channel?email=${forChannelEmail}`
+    })
+    const channel = response.data.channel
 
     const browser = await puppeteerExtra.launch({
       headless: true,
@@ -62,10 +64,11 @@ export const crawl = async (
         console.log(interceptedRequest.url())
         const videos = []
         for (const threadId of threadIds) {
-          const response = await axios.get(
-            `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/`,
-            { headers: interceptedRequest.headers() }
-          )
+          const response = await axios.request({
+            method: 'GET',
+            url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/`,
+            headers: interceptedRequest.headers()
+          })
           const threadVideos = response.data?.thread?.items
             ?.filter(each => ['clip', 'media_share'].includes(each.item_type))
             .map(item => ({
@@ -81,16 +84,22 @@ export const crawl = async (
           videos.push(threadVideos)
         }
         console.log(videos, videos.flat().length)
+        const uploadResponse = await axios.request({
+          method: 'POST',
+          url: `${apiServiceUrl}/video/upload_videos`,
+          data: {
+            videos: videos.flat(),
+            forEmail: forChannelEmail,
+            keyword: '',
+            source: 'INSTAGRAM',
+            forUser,
+            channelKeywords: channel.keywords,
+            FETCH_COUNT
+          }
+        })
 
-        FETCH_COUNT = await uploadVideosOnFirestore(
-          videos.flat(),
-          forChannelEmail,
-          '',
-          'INSTAGRAM',
-          FETCH_COUNT,
-          forUser,
-          channel.keywords
-        )
+        FETCH_COUNT = uploadResponse.FETCH_COUNT
+
         await browser.close()
       }
 

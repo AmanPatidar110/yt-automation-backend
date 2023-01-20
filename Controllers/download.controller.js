@@ -1,13 +1,7 @@
 import fs from 'fs'
 import download from 'download'
 
-export const fileDownloadWithoutAudio = async (
-  url,
-  videoId,
-  forEmail,
-  isOriginal,
-  muteAttachedMusic
-) => {
+export const fileDownloadWithoutAudio = async (url, videoId, forEmail) => {
   const videoWriteStream = fs.createWriteStream(
     `./Videos/${videoId}_${forEmail}.mp4`
   )

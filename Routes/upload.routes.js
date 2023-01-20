@@ -1,5 +1,5 @@
 import express from 'express'
-import { db } from '../firebase.js'
+import axios from 'axios'
 
 // puppeteer imports ======================
 
@@ -34,51 +34,55 @@ import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
 import chromium from 'chrome-aws-lambda'
 import { puppeteerExtra } from '../Utility/getPuppeteer.js'
+import { apiServiceUrl } from '../Utility/api-service.js'
 
 const router = express.Router()
 
 router.get('/', async (req, res, next) => {
   try {
-    const muteAttachedMusic = req.query.muteAttachedMusic
     const forUser = req.query.forUser
     const email = req.query.email
     const targetUploadCount = req.query.targetUploadCount
 
-    console.log('muteAttachedMusic', muteAttachedMusic)
-    const channelRef = db.collection('channels').doc(email)
-    const channel = await (await channelRef.get()).data()
+    console.log('uploading videos', forUser, email, targetUploadCount)
 
-    const videosRef = db.collection('videos')
-    const query = videosRef
-      .where('forEmail', '==', email)
-      .where('forUser', '==', forUser)
-      .where('uploaded', '==', false)
-    let availableCount = (await query.count().get()).data().count
-    console.log(
-      'availableCount -> before:',
-      availableCount,
-      await chromium.executablePath
-    )
+    const channelResponse = await axios.request({
+      method: 'GET',
+      url: `${apiServiceUrl}/channel/get_channel?email=${email}`
+    })
+    const channel = channelResponse.data.channel
+
+    const response = await axios.request({
+      method: 'GET',
+      url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
+    })
+
+    let availableCount = response.data.availableCount
+    console.log('availableCount -> before:', availableCount)
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
         await fetchKeywordVideos(email, channel.keywords, forUser)
       }
-      availableCount = (await query.count().get()).data().count
-      console.log('availableCount -> after fetch:', availableCount)
+      const response = await axios.request({
+        method: 'GET',
+        url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
+      })
+      availableCount = response.data.availableCount
+      console.log(
+        'availableCount -> after fetch:',
+        response,
+        availableCount,
+        `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
+      )
     }
 
-    const snapshot2 = await query.limit(parseInt(targetUploadCount)).get()
-    if (snapshot2.empty) {
-      console.log('No matching videos.')
-
-      return res.status(200).json({ msg: 'No matching videos.' })
-    }
-
-    const videos = []
-    const videoMetaData = []
-    snapshot2.forEach(vid => {
-      videos.push(vid.data())
+    const videoResponse = await axios.request({
+      method: 'GET',
+      url: `${apiServiceUrl}/video/get_videos?forUser=${forUser}&email=${email}&limit=${targetUploadCount}`
     })
+    const videos = videoResponse.data.videos
+
+    const videoMetaData = []
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
@@ -110,8 +114,7 @@ router.get('/', async (req, res, next) => {
           videoURL,
           video.video_id,
           email,
-          video.music_info.original,
-          muteAttachedMusic
+          video.music_info.original
         )
         videoMetaData.push({
           path: `Videos/${video.video_id}_${email}.mp4`,
@@ -163,8 +166,15 @@ router.get('/', async (req, res, next) => {
 
 const onVideoUploadSuccess = async (videoId, email) => {
   try {
-    await db.collection('videos').doc(videoId).update({
-      uploaded: true
+    await axios.request({
+      method: 'PATCH',
+      url: `${apiServiceUrl}/video/update_video`,
+      data: {
+        videoId,
+        video: {
+          uploaded: true
+        }
+      }
     })
 
     await removeFile(`Videos/${videoId}_${email}.mp4`)
