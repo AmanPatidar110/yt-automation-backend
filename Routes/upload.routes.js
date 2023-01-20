@@ -86,7 +86,8 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath
+      executablePath: await chromium.executablePath,
+      args: ['--no-sandbox']
     })
     const page = await browser.newPage()
 
