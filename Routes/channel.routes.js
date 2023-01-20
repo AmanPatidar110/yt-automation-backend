@@ -53,6 +53,23 @@ router.get('/get_channels', async (req, res, next) => {
   }
 })
 
+router.get('/get_channel', async (req, res, next) => {
+  try {
+    const email = req.query.email
+
+    const channelRef = db.collection('channels').doc(email)
+    const channel = (await channelRef.get()).data()
+
+    console.log('channels', channel)
+
+    res.status(200).json({ msg: 'ok', channel })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    console.log(error)
+    return next(error)
+  }
+})
+
 router.delete('/delete_channel', async (req, res, next) => {
   try {
     const forUser = req.query.forUser

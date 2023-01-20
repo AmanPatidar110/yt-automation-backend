@@ -1,5 +1,4 @@
 import express from 'express'
-import { crawl } from '../instabot.js'
 import { db } from '../firebase.js'
 
 const router = express.Router()
@@ -13,15 +12,6 @@ router.post('/add_insta_account', async (req, res, next) => {
     const accountName = req.body.accountName
     const defaultForEmail = req.body.defaultForEmail
 
-    console.log(
-      'body',
-      forUser,
-      credId,
-      credPassword,
-      threadIds,
-      accountName,
-      defaultForEmail
-    )
     const resp = await db.collection('instaAccounts').doc(credId).set({
       forUser,
       credId,
@@ -40,29 +30,22 @@ router.post('/add_insta_account', async (req, res, next) => {
   }
 })
 
-router.post('/fetch_messages_from_insta', async (req, res, next) => {
+router.get('/get_insta_account', async (req, res, next) => {
   try {
-    const forUser = req.body.forUser // 'AMAN | "ABHISHEK'
-    const instaCredId = req.body.instaCredId // 'swipe_facts'
-    const forChannelEmail = req.body.forChannelEmail // 'amanpatidar110@gmail.com'
+    const instaCredId = req.query.instaCredId
 
     const instaRef = db.collection('instaAccounts').doc(instaCredId)
     const instaAccount = (await instaRef.get()).data()
 
-    const FETCH_COUNT = await crawl(
-      instaAccount.threadIds,
-      instaCredId,
-      instaAccount.credPassword,
-      forChannelEmail,
-      forUser
-    )
-    res.status(200).json({ msg: 'ok', FETCH_COUNT })
+    console.log('insta account:', instaAccount)
+    res.status(200).json({ msg: 'ok', instaAccount })
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500
     console.log(error)
     return next(error)
   }
 })
+
 
 router.get('/get_insta_accounts', async (req, res, next) => {
   try {
