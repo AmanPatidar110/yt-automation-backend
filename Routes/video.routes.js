@@ -117,14 +117,12 @@ router.post('/upload_videos', async (req, res, next) => {
           })
 
         FETCH_COUNT += 1
-
-        return FETCH_COUNT
       } else {
         console.log('Document already exists!')
       }
     })
 
-    res.status(200).json({ msg: 'ok' })
+    res.status(200).json({ msg: 'ok', FETCH_COUNT })
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500
     console.log(error)

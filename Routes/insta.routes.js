@@ -46,7 +46,6 @@ router.get('/get_insta_account', async (req, res, next) => {
   }
 })
 
-
 router.get('/get_insta_accounts', async (req, res, next) => {
   try {
     const forUser = req.query.forUser
