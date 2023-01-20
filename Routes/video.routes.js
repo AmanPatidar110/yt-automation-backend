@@ -23,14 +23,48 @@ router.delete('/get_videos_count', async (req, res, next) => {
   }
 })
 
+router.get('/get_videos', async (req, res, next) => {
+  try {
+    const forUser = req.query.forUser
+    const email = req.query.email
+    const limit = req.query.limit
+
+    const videosRef = db.collection('videos')
+    const query = videosRef
+      .where('forEmail', '==', email)
+      .where('forUser', '==', forUser)
+      .where('uploaded', '==', false)
+
+    const snapshot2 = await query.limit(parseInt(limit)).get()
+    if (snapshot2.empty) {
+      console.log('No matching videos.')
+
+      return res.status(200).json({ msg: 'No matching videos.' })
+    }
+
+    const videos = []
+    snapshot2.forEach(vid => {
+      videos.push(vid.data())
+    })
+    res.status(200).json({ msg: 'ok', videos })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    console.log(error)
+    return next(error)
+  }
+})
+
 router.patch('/update_video', async (req, res, next) => {
   try {
     const video = req.body.video
     const videoId = req.body.videoId
 
-    await db.collection('videos').doc(videoId).update({
-      ...video
-    })
+    await db
+      .collection('videos')
+      .doc(videoId)
+      .update({
+        ...video
+      })
 
     res.status(200).json({ msg: 'ok' })
   } catch (error) {
@@ -40,7 +74,7 @@ router.patch('/update_video', async (req, res, next) => {
   }
 })
 
-router.patch('/update_videos', async (req, res, next) => {
+router.post('/upload_videos', async (req, res, next) => {
   try {
     const videos = req.body.videos
     const forEmail = req.body.forEmail
