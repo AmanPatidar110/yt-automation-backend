@@ -7,11 +7,9 @@ import puppeteer from 'puppeteer-extra'
 import {
   fileDownloadWithoutAudio,
   removeFile
-} from '../Controllers/download.controller.js'
+} from '../Controllers/file.controller.js'
 import { fetchKeywordVideos } from '../Controllers/fetchKeywordVideos.js'
 import { upload } from '../Utility/youtubeUploaderLibrary/upload.js'
-import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js'
-import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js'
 
 import 'puppeteer-extra-plugin-user-data-dir'
 import 'puppeteer-extra-plugin-user-preferences'
@@ -35,6 +33,10 @@ import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import chromium from 'chromium'
+import {
+  getVideoUrlFromInstaId,
+  getVideoUrlFromTiktokVideoId
+} from '../Controllers/downloadUrls.js'
 puppeteer.use(StealthPlugin())
 
 const router = express.Router()
@@ -92,7 +94,7 @@ router.get('/', async (req, res, next) => {
       let videoURL = ''
       try {
         if (video.source === 'INSTAGRAM') {
-          videoURL = await getVideoUrlForInsta(video.video_id)
+          videoURL = await getVideoUrlFromInstaId(video.video_id)
         } else {
           videoURL = await getVideoUrlFromTiktokVideoId(
             page,

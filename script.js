@@ -3,8 +3,6 @@ import http from 'http'
 import cors from 'cors'
 
 import uploadRoutes from './Routes/upload.routes.js'
-import channelRoutes from './Routes/channel.routes.js'
-import instaRoutes from './Routes/insta.routes.js'
 
 const app = express()
 app.use(cors())
@@ -18,8 +16,6 @@ server.listen(PORT, () => {
 })
 app.use(express.json())
 
-app.use('/channel', channelRoutes)
-app.use('/insta', instaRoutes)
 app.use('/upload', uploadRoutes)
 
 app.use((error, req, res, next) => {
