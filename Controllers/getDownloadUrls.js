@@ -11,7 +11,13 @@ export const getVideoUrlFromInstaId = async videoId => {
       headless: true,
       ignoreHTTPSErrors: true,
       executablePath: await chromium.executablePath,
-      args: ['--no-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--enable-webgl',
+        '--start-maximized',
+        '--disable-dev-shm-usage'
+      ]
     })
     const page = await browser.newPage()
     await page.goto('https://saveinsta.app/en/instagram-reels-video-download', {
