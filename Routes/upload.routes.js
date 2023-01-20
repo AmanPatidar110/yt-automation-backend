@@ -1,7 +1,6 @@
 import express from 'express'
 import { db } from '../firebase.js'
 
-import { dirname } from 'path'
 // puppeteer imports ======================
 import puppeteerRaw from 'puppeteer'
 import puppeteer from 'puppeteer-extra'
@@ -58,7 +57,7 @@ router.get('/', async (req, res, next) => {
     console.log(
       'availableCount -> before:',
       availableCount,
-      dirname(puppeteerRaw.executablePath())
+      puppeteerRaw.executablePath()
     )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
@@ -84,12 +83,12 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: dirname(puppeteerRaw.executablePath())
+      executablePath: puppeteerRaw.executablePath()
     })
     const page = await browser.newPage()
 
     for (const video of videos) {
-      console.log(video.video_id, '=>', targetUploadCount)
+      console.log(video.video_id, '=>', 'fetching download url...')
 
       let videoURL = ''
       try {
@@ -109,7 +108,7 @@ router.get('/', async (req, res, next) => {
           continue
         }
         await fileDownloadWithoutAudio(
-          videoURL || '',
+          videoURL,
           video.video_id,
           email,
           video.music_info.original,

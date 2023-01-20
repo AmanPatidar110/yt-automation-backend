@@ -1,4 +1,3 @@
-import { dirname } from 'path'
 // puppeteer imports ======================
 import puppeteerRaw from 'puppeteer'
 import puppeteer from 'puppeteer-extra'
@@ -12,7 +11,7 @@ export const getVideoUrlForInsta = async videoId => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: dirname(puppeteerRaw.executablePath())
+      executablePath: puppeteerRaw.executablePath()
     })
     const page = await browser.newPage()
     await page.goto('https://saveinsta.app/en/instagram-reels-video-download', {

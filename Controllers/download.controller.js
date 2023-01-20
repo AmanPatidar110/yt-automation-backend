@@ -26,7 +26,9 @@ export const fileDownloadWithoutAudio = async (
             console.log(err)
             reject(err)
           })
-      ).saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
+      )
+        .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
+        .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
     } else {
       console.log('Downloading video without music')
       Ffmpeg(
@@ -40,6 +42,7 @@ export const fileDownloadWithoutAudio = async (
             reject(err)
           })
       )
+        .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
         .withNoAudio()
         .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
     }
