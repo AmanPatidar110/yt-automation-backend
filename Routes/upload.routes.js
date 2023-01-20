@@ -49,7 +49,6 @@ router.get('/', async (req, res, next) => {
       forUser,
       email,
       targetUploadCount,
-      chromium.args,
       chromium.headless
     )
 
