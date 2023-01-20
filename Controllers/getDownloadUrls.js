@@ -1,5 +1,6 @@
 // puppeteer imports ======================
-import chromium from 'chrome-aws-lambda'
+
+import chromium from 'chromium'
 
 import { puppeteerExtra } from '../Utility/getPuppeteer.js'
 
@@ -10,13 +11,12 @@ export const getVideoUrlFromInstaId = async videoId => {
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath,
+      executablePath: chromium.path,
       args: [
         '--no-sandbox',
         '--disable-gpu',
         '--enable-webgl',
-        '--start-maximized',
-        '--disable-dev-shm-usage'
+        '--start-maximized'
       ]
     })
     const page = await browser.newPage()

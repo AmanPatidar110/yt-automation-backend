@@ -32,9 +32,9 @@ import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
-import chromium from 'chrome-aws-lambda'
 import { puppeteerExtra } from '../Utility/getPuppeteer.js'
 import { apiServiceUrl } from '../Utility/api-service.js'
+import chromium from 'chromium'
 
 const router = express.Router()
 
@@ -44,13 +44,7 @@ router.get('/', async (req, res, next) => {
     const email = req.query.email
     const targetUploadCount = req.query.targetUploadCount
 
-    console.log(
-      'uploading videos',
-      forUser,
-      email,
-      targetUploadCount,
-      chromium.headless
-    )
+    console.log('uploading videos', forUser, email, targetUploadCount)
 
     const channelResponse = await axios.request({
       method: 'GET',
@@ -88,12 +82,18 @@ router.get('/', async (req, res, next) => {
     })
     const videos = videoResponse.data.videos
 
+    // console.log('videos: ', videos)
     const videoMetaData = []
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath,
-      args: chromium.args
+      executablePath: chromium.path,
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--enable-webgl',
+        '--start-maximized'
+      ]
     })
     const page = await browser.newPage()
 
@@ -153,10 +153,15 @@ router.get('/', async (req, res, next) => {
       recoveryemail: 'aamanpatidar110@gmail.com'
     }
     const resp = await upload(credentials, videoMetaData, {
-      executablePath: await chromium.executablePath,
+      executablePath: chromium.path,
       headless: true,
       ignoreHTTPSErrors: true,
-      args: chromium.args
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--enable-webgl',
+        '--start-maximized'
+      ]
     })
 
     console.log('Uploading successfully!', resp)

@@ -51,7 +51,6 @@ export const upload = async (
       .replace(/\./g, '_')}.json`
   )
 
-  console.log('Launching browser')
   await launchBrowser(puppeteerLaunch)
   console.log('Loading Account')
   await loadAccount(credentials, messageTransport)
@@ -592,24 +591,29 @@ async function changeHomePageLangIfNeeded (localPage) {
 }
 
 async function launchBrowser (puppeteerLaunch) {
-  const previousSession = fs.existsSync(cookiesFilePath)
-  browser = await puppeteerExtra.launch(puppeteerLaunch)
-  page = await browser.newPage()
-  await page.setDefaultTimeout(timeout)
-  if (previousSession) {
-    // If file exist load the cookies
-    const cookiesString = fs.readFileSync(cookiesFilePath, {
-      encoding: 'utf-8'
-    })
-    const parsedCookies = JSON.parse(cookiesString)
-    if (parsedCookies.length !== 0) {
-      for (const cookie of parsedCookies) {
-        await page.setCookie(cookie)
+  try {
+    console.log('Getting previos session...')
+    const previousSession = fs.existsSync(cookiesFilePath)
+    console.log('Launching browser...')
+    browser = await puppeteerExtra.launch(puppeteerLaunch)
+    page = await browser.newPage()
+    console.log('Getting new page...')
+    await page.setDefaultTimeout(timeout)
+    if (previousSession) {
+      // If file exist load the cookies
+      const cookiesString = fs.readFileSync(cookiesFilePath, {
+        encoding: 'utf-8'
+      })
+      const parsedCookies = JSON.parse(cookiesString)
+      if (parsedCookies.length !== 0) {
+        for (const cookie of parsedCookies) {
+          await page.setCookie(cookie)
+        }
       }
     }
-  }
-  // await page.setViewport({ width: width, height: height })
-  await page.setBypassCSP(false)
+    // await page.setViewport({ width: width, height: height })
+    await page.setBypassCSP(false)
+  } catch (error) {}
 }
 
 async function login (localPage, credentials, messageTransport) {

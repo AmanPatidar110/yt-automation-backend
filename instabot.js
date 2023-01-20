@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import chromium from 'chrome-aws-lambda'
+import chromium from 'chromium'
 import { puppeteerExtra } from './Utility/getPuppeteer.js'
 import { apiServiceUrl } from './Utility/api-service.js'
 
@@ -40,13 +40,12 @@ export const crawl = async (
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath,
+      executablePath: chromium.path,
       args: [
         '--no-sandbox',
         '--disable-gpu',
         '--enable-webgl',
-        '--start-maximized',
-        '--disable-dev-shm-usage'
+        '--start-maximized'
       ]
       // args: ["--proxy-server=http://66.29.128.245:17861"],
     })
