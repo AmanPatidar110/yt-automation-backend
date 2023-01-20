@@ -14,11 +14,14 @@ export const fileDownloadWithoutAudio = async (
   return new Promise((resolve, reject) => {
     console.log('Downloading...')
     download(url)
-      .pipe(videoWriteStream)
+      .on('progress', progress => {
+        console.log('progress: ', progress)
+      })
       .on('end', () => {
         console.log('Downloaded')
         resolve()
       })
+      .pipe(videoWriteStream)
     // if (isOriginal || muteAttachedMusic === 'false') {
     //   console.log('Downloading video with music')
     //   ffmpeg(
