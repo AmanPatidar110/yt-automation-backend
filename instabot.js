@@ -40,7 +40,8 @@ export const crawl = async (
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath()
+      executablePath: puppeteerRaw.executablePath(),
+      args: ['--no-sandbox']
       // args: ["--proxy-server=http://66.29.128.245:17861"],
     })
     const page = await browser.newPage()

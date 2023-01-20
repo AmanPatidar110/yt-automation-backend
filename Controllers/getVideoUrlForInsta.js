@@ -11,7 +11,8 @@ export const getVideoUrlForInsta = async videoId => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath()
+      executablePath: puppeteerRaw.executablePath(),
+      args: ['--no-sandbox']
     })
     const page = await browser.newPage()
     await page.goto('https://saveinsta.app/en/instagram-reels-video-download', {

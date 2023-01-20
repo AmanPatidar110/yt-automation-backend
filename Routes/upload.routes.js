@@ -85,7 +85,8 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: puppeteerRaw.executablePath()
+      executablePath: puppeteerRaw.executablePath(),
+      args: ['--no-sandbox']
     })
     const page = await browser.newPage()
 
