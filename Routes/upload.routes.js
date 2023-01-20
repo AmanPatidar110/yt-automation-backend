@@ -15,25 +15,25 @@ import { upload } from '../Utility/youtubeUploaderLibrary/upload.js'
 import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js'
 import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js'
 
-require('puppeteer-extra-plugin-stealth/evasions/chrome.app')
-require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')
-require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')
-require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')
-require('puppeteer-extra-plugin-stealth/evasions/defaultArgs') // pkg warned me this one was missing
-require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')
-require('puppeteer-extra-plugin-stealth/evasions/media.codecs')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.permissions')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.vendor')
-require('puppeteer-extra-plugin-stealth/evasions/navigator.webdriver')
-require('puppeteer-extra-plugin-stealth/evasions/sourceurl')
-require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')
-require('puppeteer-extra-plugin-stealth/evasions/webgl.vendor')
-require('puppeteer-extra-plugin-stealth/evasions/window.outerdimensions')
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.app/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.csi/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/chrome.runtime/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/defaultArgs/index.js' // pkg warned me this one was missing
+import 'puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/media.codecs/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.languages/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.permissions/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.plugins/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.vendor/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/navigator.webdriver/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/sourceurl/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js'
+import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 puppeteer.use(StealthPlugin())
 
 const router = express.Router()
