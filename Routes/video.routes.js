@@ -3,7 +3,7 @@ import { db } from '../firebase.js'
 
 const router = express.Router()
 
-router.delete('/get_videos_count', async (req, res, next) => {
+router.get('/get_videos_count', async (req, res, next) => {
   try {
     const forUser = req.query.forUser
     const email = req.query.email
