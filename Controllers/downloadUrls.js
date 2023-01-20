@@ -1,17 +1,18 @@
 // puppeteer imports ======================
 import chromium from 'chrome-aws-lambda'
+
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 puppeteer.use(StealthPlugin())
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
-export const getVideoUrlForInsta = async videoId => {
+export const getVideoUrlFromInstaId = async videoId => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: await chromium.executablePath,
+      executablePath: await chromium.executablePath(),
       args: ['--no-sandbox']
     })
     const page = await browser.newPage()
@@ -37,6 +38,33 @@ export const getVideoUrlForInsta = async videoId => {
     console.log(videoURL)
     browser.close()
     return videoURL
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
+  try {
+    await page.goto('https://tiktokdownload.online/', {
+      waitUntil: 'networkidle2'
+    })
+    const input = '#main_page_text'
+    await page.waitForSelector(input)
+    await page.type(input, `https://www.tiktok.com/@${user}/video/${videoId}`, {
+      delay: 60
+    })
+    await page.waitForTimeout(2000)
+
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(5000)
+    await page.waitForXPath('//*[@id="mainpicture"]/div/div/a[1]')
+    await page.waitForTimeout(1000)
+    const href = await page.$eval(
+      '#mainpicture > div > div > a.pure-button:nth-child(1)',
+      elm => elm.href
+    )
+
+    return href
   } catch (error) {
     console.log(error)
   }

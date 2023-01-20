@@ -34,7 +34,7 @@ import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import chromium from 'chromium'
+import chromium from 'chrome-aws-lambda'
 puppeteer.use(StealthPlugin())
 
 const router = express.Router()
@@ -56,7 +56,11 @@ router.get('/', async (req, res, next) => {
       .where('forUser', '==', forUser)
       .where('uploaded', '==', false)
     let availableCount = (await query.count().get()).data().count
-    console.log('availableCount -> before:', availableCount, chromium.path)
+    console.log(
+      'availableCount -> before:',
+      availableCount,
+      await chromium.executablePath
+    )
     while (availableCount < targetUploadCount) {
       if (availableCount < targetUploadCount) {
         await fetchKeywordVideos(email, channel.keywords, forUser)
@@ -81,7 +85,7 @@ router.get('/', async (req, res, next) => {
     const browser = await puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
-      executablePath: chromium.path,
+      executablePath: await chromium.executablePath,
       args: ['--no-sandbox']
     })
     const page = await browser.newPage()
@@ -143,7 +147,7 @@ router.get('/', async (req, res, next) => {
       recoveryemail: 'aamanpatidar110@gmail.com'
     }
     const resp = await upload(credentials, videoMetaData, {
-      executablePath: chromium.path,
+      executablePath: await chromium.executablePath,
       headless: true,
       ignoreHTTPSErrors: true,
       args: [
