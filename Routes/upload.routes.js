@@ -91,8 +91,7 @@ router.get('/', async (req, res, next) => {
         '--no-sandbox',
         '--disable-gpu',
         '--enable-webgl',
-        '--start-maximized',
-        '--disable-dev-shm-usage'
+        '--start-maximized'
       ]
     })
     const page = await browser.newPage()
