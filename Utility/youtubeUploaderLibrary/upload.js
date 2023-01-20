@@ -1,9 +1,8 @@
-import fs from 'fs-extra'
+import fs from 'fs'
 import path from 'path'
 
-import chromium from 'chrome-aws-lambda'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { addExtra } from 'puppeteer-extra'
+import { puppeteerExtra } from '../getPuppeteer.js'
 StealthPlugin().enabledEvasions.delete('iframe.contentWindow')
 StealthPlugin().enabledEvasions.delete('navigator.plugins')
 
@@ -594,8 +593,6 @@ async function changeHomePageLangIfNeeded (localPage) {
 
 async function launchBrowser (puppeteerLaunch) {
   const previousSession = fs.existsSync(cookiesFilePath)
-  const puppeteerExtra = addExtra(chromium.puppeteer)
-  puppeteerExtra.use(StealthPlugin())
   browser = await puppeteerExtra.launch(puppeteerLaunch)
   page = await browser.newPage()
   await page.setDefaultTimeout(timeout)

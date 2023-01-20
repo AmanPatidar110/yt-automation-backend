@@ -22,37 +22,6 @@ export const fileDownloadWithoutAudio = async (
         resolve()
       })
       .pipe(videoWriteStream)
-    // if (isOriginal || muteAttachedMusic === 'false') {
-    //   console.log('Downloading video with music')
-    //   ffmpeg(
-    //       .on('end', () => {
-    //         console.log('Downloaded')
-    //         resolve()
-    //       })
-    //       .on('error', err => {
-    //         console.log(err)
-    //         reject(err)
-    //       })
-    //   )
-    //     .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
-    //     .saveToFile()
-    // } else {
-    //   console.log('Downloading video without music')
-    //   ffmpeg(
-    //     download(url)
-    //       .on('end', () => {
-    //         console.log('Downloaded')
-    //         resolve()
-    //       })
-    //       .on('error', err => {
-    //         console.log(err)
-    //         reject(err)
-    //       })
-    //   )
-    //     .addOutputOption('-movflags', 'frag_keyframe+empty_moov')
-    //     .withNoAudio()
-    //     .saveToFile(`./Videos/${videoId}_${forEmail}.mp4`)
-    // }
   })
 }
 

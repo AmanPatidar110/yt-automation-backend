@@ -1,10 +1,9 @@
-import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import axios from 'axios'
 
 import { uploadVideosOnFirestore } from './Controllers/fireStoreUpload.controller.js'
 import { db } from './firebase.js'
 import chromium from 'chrome-aws-lambda'
-import { addExtra } from 'puppeteer-extra'
+import { puppeteerExtra } from './Utility/getPuppeteer.js'
 
 /** To get the proxy run below code
 
@@ -36,8 +35,6 @@ export const crawl = async (
     const channelRef = db.collection('channels').doc(forChannelEmail)
     const channel = (await channelRef.get()).data()
 
-    const puppeteerExtra = addExtra(chromium.puppeteer)
-    puppeteerExtra.use(StealthPlugin())
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,

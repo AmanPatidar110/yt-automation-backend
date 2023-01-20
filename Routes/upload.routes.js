@@ -32,9 +32,8 @@ import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js'
 import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js'
 
-import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import chromium from 'chrome-aws-lambda'
-import { addExtra } from 'puppeteer-extra'
+import { puppeteerExtra } from '../Utility/getPuppeteer.js'
 
 const router = express.Router()
 
@@ -80,8 +79,6 @@ router.get('/', async (req, res, next) => {
     snapshot2.forEach(vid => {
       videos.push(vid.data())
     })
-    const puppeteerExtra = addExtra(chromium.puppeteer)
-    puppeteerExtra.use(StealthPlugin())
     const browser = await puppeteerExtra.launch({
       headless: true,
       ignoreHTTPSErrors: true,
