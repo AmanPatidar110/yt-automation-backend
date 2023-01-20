@@ -382,7 +382,6 @@ async function uploadVideo (videoJSON, messageTransport) {
   const nextBtnXPath =
     "//*[normalize-space(text())='Next']/parent::*[not(@disabled)]"
   await page.waitForXPath(nextBtnXPath)
-
   let next = await page.$x(nextBtnXPath)
   await next[0].click()
   // await sleep(2000)
