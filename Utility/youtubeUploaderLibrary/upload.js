@@ -53,27 +53,27 @@ export const upload = async (
     await launchBrowser();
     console.log('Loading Account');
     await loadAccount(credentials, messageTransport);
-    console.log('Account loaded', videos);
+    // console.log('Account loaded', videos);
     const uploadedYTLink = [];
 
-    let link;
-    for (const video of videos) {
-        try {
-            link = await uploadVideo(video, messageTransport);
-        } catch (error) {
-            console.log(error);
-            continue;
-        }
+    // let link;
+    // for (const video of videos) {
+    //     try {
+    //         link = await uploadVideo(video, messageTransport);
+    //     } catch (error) {
+    //         console.log(error);
+    //         continue;
+    //     }
 
-        const { onSuccess } = video;
-        if (typeof onSuccess === 'function') {
-            onSuccess(link);
-        }
+    //     const { onSuccess } = video;
+    //     if (typeof onSuccess === 'function') {
+    //         onSuccess(link);
+    //     }
 
-        uploadedYTLink.push(link);
-    }
+    //     uploadedYTLink.push(link);
+    // }
 
-    await browser.close();
+    // await browser.close();
 
     return uploadedYTLink;
 };
@@ -668,7 +668,16 @@ async function login(localPage, credentials, messageTransport) {
 
     // check if 2fa code was sent to phone
     await newP.waitForNavigation();
-    await newP.waitForTimeout(1000);
+    await newP.waitForTimeout(3000);
+    const nextPageContent = await newP.content();
+    await fs.writeFile('./beforepswrd.html', nextPageContent, function (err) {
+        if (err) {
+            messageTransport.log(
+                'The file could not be written. ' + err.message
+            );
+        }
+        messageTransport.log('Html has been successfully saved');
+    });
     const googleAppAuthSelector = 'samp';
     const isOnGoogleAppAuthPage = await newP.evaluate(
         (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
@@ -697,54 +706,67 @@ async function login(localPage, credentials, messageTransport) {
         await newP.keyboard.press('Enter');
     }
 
-    try {
-        await newP.waitForNavigation();
-        await newP.waitForTimeout(1000);
+    await newP.waitForNavigation();
+    await newP.waitForTimeout(3000);
 
-        // check if sms code was sent
-        const smsAuthSelector = '#idvPin';
-        const isOnSmsAuthPage = await newP.evaluate(
-            (smsAuthSelector) =>
-                document.querySelector(smsAuthSelector) !== null,
-            smsAuthSelector
-        );
-        if (isOnSmsAuthPage) {
-            try {
-                if (!messageTransport.onSmsVerificationCodeSent) {
-                    throw new Error(
-                        'onSmsVerificationCodeSent not implemented'
-                    );
-                }
-
-                const code = await messageTransport.onSmsVerificationCodeSent();
-
-                if (!code) throw new Error('Invalid SMS Code');
-
-                await newP.type(smsAuthSelector, code.trim());
-                await newP.keyboard.press('Enter');
-            } catch (error) {
-                console.log(error);
-                await browser.close();
-                throw error;
-            }
+    const paswdContent = await newP.content();
+    await fs.writeFile('./afterPswrd.html', paswdContent, function (err) {
+        if (err) {
+            messageTransport.log(
+                'The file could not be written. ' + err.message
+            );
         }
-    } catch (error) {
-        console.log(error);
-        const recaptchaInputSelector =
-            'input[aria-label="Type the text you hear or see"]';
+        messageTransport.log('Html 2 has been successfully saved');
+    });
 
-        const isOnRecaptchaPage = await localPage.evaluate(
-            (recaptchaInputSelector) =>
-                document.querySelector(recaptchaInputSelector) !== null,
-            recaptchaInputSelector
-        );
+    // try {
+    //     await newP.waitForNavigation();
+    //     await newP.waitForTimeout(1000);
 
-        if (isOnRecaptchaPage) {
-            throw new Error('Recaptcha found');
-        }
+    //     // check if sms code was sent
+    //     const smsAuthSelector = '#idvPin';
+    //     const isOnSmsAuthPage = await newP.evaluate(
+    //         (smsAuthSelector) =>
+    //             document.querySelector(smsAuthSelector) !== null,
+    //         smsAuthSelector
+    //     );
+    //     if (isOnSmsAuthPage) {
+    //         try {
+    //             if (!messageTransport.onSmsVerificationCodeSent) {
+    //                 throw new Error(
+    //                     'onSmsVerificationCodeSent not implemented'
+    //                 );
+    //             }
 
-        throw new Error(error);
-    }
+    //             const code = await messageTransport.onSmsVerificationCodeSent();
+
+    //             if (!code) throw new Error('Invalid SMS Code');
+
+    //             await newP.type(smsAuthSelector, code.trim());
+    //             await newP.keyboard.press('Enter');
+    //         } catch (error) {
+    //             console.log(error);
+    //             await browser.close();
+    //             throw error;
+    //         }
+    //     }
+    // } catch (error) {
+    //     console.log(error);
+    //     const recaptchaInputSelector =
+    //         'input[aria-label="Type the text you hear or see"]';
+
+    //     const isOnRecaptchaPage = await localPage.evaluate(
+    //         (recaptchaInputSelector) =>
+    //             document.querySelector(recaptchaInputSelector) !== null,
+    //         recaptchaInputSelector
+    //     );
+
+    //     if (isOnRecaptchaPage) {
+    //         throw new Error('Recaptcha found');
+    //     }
+
+    //     throw new Error(error);
+    // }
 
     // create channel if not already created.
     // try {
@@ -756,39 +778,39 @@ async function login(localPage, credentials, messageTransport) {
     //     'Channel already exists or there was an error creating the channel.'
     //   )
     // }
-    try {
-        await localPage.goto(uploadURL);
+    // try {
+    //     await localPage.goto(uploadURL);
 
-        const uploadPopupSelector = 'ytcp-uploads-dialog';
-        await localPage.waitForSelector(uploadPopupSelector, {
-            timeout: 70000,
-        });
-    } catch (error) {
-        console.log(error);
-        if (credentials.recoveryemail) {
-            await securityBypass(
-                newP,
-                credentials.recoveryemail,
-                messageTransport
-            );
-        }
-    }
-    const cookiesObject = await localPage.cookies();
-    await fs.mkdirSync(cookiesDirPath, { recursive: true });
-    // Write cookies to temp file to be used in other profile pages
-    await fs.writeFile(
-        cookiesFilePath,
-        JSON.stringify(cookiesObject),
-        function (err) {
-            if (err) {
-                messageTransport.log(
-                    'The file could not be written. ' + err.message
-                );
-            }
-            messageTransport.log('Session has been successfully saved');
-        }
-    );
-    await newP.close();
+    //     const uploadPopupSelector = 'ytcp-uploads-dialog';
+    //     await localPage.waitForSelector(uploadPopupSelector, {
+    //         timeout: 70000,
+    //     });
+    // } catch (error) {
+    //     console.log(error);
+    //     if (credentials.recoveryemail) {
+    //         await securityBypass(
+    //             newP,
+    //             credentials.recoveryemail,
+    //             messageTransport
+    //         );
+    //     }
+    // }
+    // const cookiesObject = await localPage.cookies();
+    // await fs.mkdirSync(cookiesDirPath, { recursive: true });
+    // // Write cookies to temp file to be used in other profile pages
+    // await fs.writeFile(
+    //     cookiesFilePath,
+    //     JSON.stringify(cookiesObject),
+    //     function (err) {
+    //         if (err) {
+    //             messageTransport.log(
+    //                 'The file could not be written. ' + err.message
+    //             );
+    //         }
+    //         messageTransport.log('Session has been successfully saved');
+    //     }
+    // );
+    // await newP.close();
 }
 
 // Login bypass with recovery email
