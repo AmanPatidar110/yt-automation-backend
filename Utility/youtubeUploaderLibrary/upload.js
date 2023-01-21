@@ -56,11 +56,16 @@ export const upload = async (
   await loadAccount(credentials, messageTransport)
   console.log('Account loaded', videos)
   const uploadedYTLink = []
+  await page.setViewport({ width: 1280, height: 720 })
 
+  let link
   for (const video of videos) {
-    await page.setViewport({ width: 1280, height: 720 })
-
-    const link = await uploadVideo(video, messageTransport)
+    try {
+      link = await uploadVideo(video, messageTransport)
+    } catch (error) {
+      console.log(error)
+      continue
+    }
 
     const { onSuccess } = video
     if (typeof onSuccess === 'function') {
@@ -100,7 +105,6 @@ async function uploadVideo (videoJSON, messageTransport) {
   // For backward compatablility playlist.name is checked first
   const playlistName = videoJSON.playlist
   const videoLang = videoJSON.language
-  const gameTitleSearch = videoJSON.gameTitleSearch
   const thumb = videoJSON.thumbnail
   const uploadAsDraft = videoJSON.uploadAsDraft
   await page.evaluate(() => {
@@ -402,6 +406,7 @@ async function uploadVideo (videoJSON, messageTransport) {
     "//*[normalize-space(text())='Publish']/parent::*[not(@disabled)] | //*[normalize-space(text())='Save']/parent::*[not(@disabled)]"
   await page.waitForXPath(publishXPath)
   // save youtube upload link
+  await page.waitForTimeout(3000)
   const videoBaseLink = 'https://youtu.be'
   const shortVideoBaseLink = 'https://youtube.com/shorts'
   const uploadLinkSelector = `[href^="${videoBaseLink}"], [href^="${shortVideoBaseLink}"]`
@@ -654,8 +659,9 @@ async function login (localPage, credentials, messageTransport) {
     const code = (await codeElement?.getProperty('textContent'))
       ?.toString()
       .replace('JSHandle:', '')
-    code &&
+    if (code) {
       messageTransport.userAction('Press ' + code + ' on your phone to login')
+    }
   }
   // password isnt required in the case that a code was sent via google auth
   else {
