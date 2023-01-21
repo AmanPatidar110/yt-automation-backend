@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import createPage from '../getPage.js';
+import createPage, { MainBrowser } from '../getPage.js';
 StealthPlugin().enabledEvasions.delete('iframe.contentWindow');
 StealthPlugin().enabledEvasions.delete('navigator.plugins');
 
@@ -55,7 +55,6 @@ export const upload = async (
     await loadAccount(credentials, messageTransport);
     console.log('Account loaded', videos);
     const uploadedYTLink = [];
-    await page.setViewport({ width: 1280, height: 720 });
 
     let link;
     for (const video of videos) {
@@ -620,6 +619,7 @@ async function launchBrowser() {
         console.log('Getting previos session...');
         const previousSession = fs.existsSync(cookiesFilePath);
         console.log('Launching browser...');
+        browser = MainBrowser;
         page = await createPage();
         console.log('Getting new page...');
         await page.setDefaultTimeout(timeout);
@@ -635,7 +635,6 @@ async function launchBrowser() {
                 }
             }
         }
-        // await page.setViewport({ width: width, height: height })
         await page.setBypassCSP(false);
     } catch (error) {}
 }
@@ -644,10 +643,11 @@ async function login(localPage, credentials, messageTransport) {
     console.log('Logging in');
     await localPage.goto('https://www.google.com/search?q=gmail');
 
-    await localPage.waitForTimeout(1000);
-    await localPage.waitForTimeout(1000);
-    await localPage.waitForXPath('//*[@id="gb"]/div/div[1]/a');
-    await localPage.click('#gb > div > div.gb_Ve > a');
+    await localPage.waitForTimeout(2000);
+
+    const xPath = '//*[@id="gb"]/div/div[1]/a';
+    await localPage.waitForXPath(xPath);
+    await localPage.click('xpath/' + xPath);
     const newP = await browser.newPage();
     await newP.setBypassCSP(false);
     const ua =
