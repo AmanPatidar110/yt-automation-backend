@@ -53,7 +53,7 @@ export const upload = async (
     await launchBrowser();
     console.log('Loading Account');
     await loadAccount(credentials, messageTransport);
-    console.log('Account loaded', videos);
+    console.log('Account loaded', videos.length);
     const uploadedYTLink = [];
 
     let link;
@@ -80,6 +80,7 @@ export const upload = async (
 
 // 'videoJSON = {}', avoid 'videoJSON = undefined' throw error.
 async function uploadVideo(videoJSON, messageTransport) {
+    messageTransport.userAction('Uploading video: ', videoJSON);
     const pathToFile = videoJSON.path;
     if (!pathToFile) {
         throw new Error(
@@ -94,6 +95,11 @@ async function uploadVideo(videoJSON, messageTransport) {
         }
     }
     if (videoJSON.channelName) {
+        messageTransport.userAction(
+            'Changing channel to: ',
+            videoJSON.channelName
+        );
+
         await changeChannel(videoJSON.channelName);
     }
 
@@ -162,6 +168,7 @@ async function uploadVideo(videoJSON, messageTransport) {
         page.waitForFileChooser(),
         selectBtn[0].click(), // button that triggers file selection
     ]);
+    messageTransport.userAction('Choosing file: ', pathToFile);
     await fileChooser.accept([pathToFile]);
     // Setup onProgress
     let progressChecker;
@@ -250,6 +257,7 @@ async function uploadVideo(videoJSON, messageTransport) {
 
     // Wait until title & description box pops up
     if (thumb) {
+        messageTransport.userAction('Uploading thumbnail...');
         const thumbnailChooserXpath = xpathTextSelector('upload thumbnail');
         await page.waitForXPath(thumbnailChooserXpath);
         const thumbBtn = await page.$x(thumbnailChooserXpath);
@@ -265,11 +273,13 @@ async function uploadVideo(videoJSON, messageTransport) {
     const textBoxes = await page.$x('//*[@id="textbox"]');
     await page.bringToFront();
     // Add the title value
+    messageTransport.userAction('Adding title: ', title);
     await textBoxes[0].focus();
     await page.waitForTimeout(1000);
     await textBoxes[0].evaluate((e) => (e.__shady_native_textContent = ''));
     await textBoxes[0].type(title.substring(0, maxTitleLen));
     // Add the Description content
+    messageTransport.userAction('Adding description: ', description);
     await textBoxes[0].evaluate((e) => (e.__shady_native_textContent = ''));
     await textBoxes[1].type(description.substring(0, maxDescLen));
 
@@ -283,6 +293,8 @@ async function uploadVideo(videoJSON, messageTransport) {
     const playlist = await page.$x("//*[normalize-space(text())='Select']");
     let createplaylistdone;
     if (playlistName) {
+        messageTransport.userAction('Selecting playlist');
+
         // Selecting playlist
         for (let i = 0; i < 2; i++) {
             try {
@@ -336,6 +348,7 @@ async function uploadVideo(videoJSON, messageTransport) {
         }
     }
 
+    messageTransport.userAction('Adding video configs: ');
     if (!videoJSON.isNotForKid) {
         await page
             .click("tp-yt-paper-radio-button[name='VIDEO_MADE_FOR_KIDS_MFK']")
@@ -374,6 +387,8 @@ async function uploadVideo(videoJSON, messageTransport) {
 
     // Add tags
     if (tags) {
+        messageTransport.userAction('Adding tags');
+
         // show more
         try {
             await page.focus('[aria-label="Tags"]');
@@ -386,6 +401,8 @@ async function uploadVideo(videoJSON, messageTransport) {
 
     // Selecting video language
     if (videoLang) {
+        messageTransport.userAction('Selecting video language');
+
         const langHandler = await page.$x(
             "//*[normalize-space(text())='Video language']"
         );
@@ -444,6 +461,7 @@ async function uploadVideo(videoJSON, messageTransport) {
         uploadedLink === shortVideoBaseLink
     );
 
+    messageTransport.userAction('Publishing video...!!!');
     const closeDialogXPath = uploadAsDraft ? saveCloseBtnXPath : publishXPath;
     let closeDialog;
     for (let i = 0; i < 10; i++) {
@@ -654,6 +672,8 @@ async function login(localPage, credentials, messageTransport) {
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
     await newP.setUserAgent(ua);
 
+    messageTransport.userAction('Goto: https://accounts.google.com');
+
     await newP.goto('https://accounts.google.com', {
         waitUntil: 'networkidle2',
     });
@@ -662,45 +682,54 @@ async function login(localPage, credentials, messageTransport) {
 
     const emailInputSelector = 'input[type="email"]';
     await newP.waitForSelector(emailInputSelector);
+    messageTransport.userAction('Entering email: ', credentials.email);
 
     await newP.type(emailInputSelector, credentials.email, { delay: 200 });
     await newP.keyboard.press('Enter');
+
+    await newP.waitForNavigation();
+    await newP.waitForTimeout(1000);
+
+    const passwordInputSelector =
+        'input[type="password"]:not([aria-hidden="true"])';
+    await newP.waitForSelector(passwordInputSelector);
+    messageTransport.userAction('Entering password: ', credentials.pass);
+    await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
+    await newP.keyboard.press('Enter');
+
+    await newP.waitForNavigation();
+    await newP.waitForTimeout(2000);
 
     // check if 2fa code was sent to phone
     await newP.waitForNavigation();
     await newP.waitForTimeout(1000);
     const googleAppAuthSelector = 'samp';
-    const isOnGoogleAppAuthPage = await newP.evaluate(
+    let isOnGoogleAppAuthPage = await newP.evaluate(
         (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
         googleAppAuthSelector
     );
 
-    if (isOnGoogleAppAuthPage) {
+    while (isOnGoogleAppAuthPage) {
         const codeElement = await newP.$('samp');
         const code = (await codeElement?.getProperty('textContent'))
             ?.toString()
             .replace('JSHandle:', '');
         if (code) {
             messageTransport.userAction(
-                'Press ' + code + ' on your phone to login'
+                '****Press ""' + code + '""" on your phone to login****'
             );
         }
-    }
-    // password isnt required in the case that a code was sent via google auth
-    else {
-        const passwordInputSelector =
-            'input[type="password"]:not([aria-hidden="true"])';
-        await newP.waitForSelector(passwordInputSelector);
-        await newP.waitForTimeout(3000);
-        await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
+        await newP.waitForNavigation({ timeout: 180000 });
+        await newP.waitForTimeout(2000);
 
-        await newP.keyboard.press('Enter');
+        isOnGoogleAppAuthPage = await newP.evaluate(
+            (authCodeSelector) =>
+                document.querySelector(authCodeSelector) !== null,
+            googleAppAuthSelector
+        );
     }
 
     try {
-        await newP.waitForNavigation();
-        await newP.waitForTimeout(1000);
-
         // check if sms code was sent
         const smsAuthSelector = '#idvPin';
         const isOnSmsAuthPage = await newP.evaluate(
