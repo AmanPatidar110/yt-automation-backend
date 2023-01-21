@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import createPage, { MainBrowser } from '../getPage.js';
+import createPage from '../getPage.js';
 StealthPlugin().enabledEvasions.delete('iframe.contentWindow');
 StealthPlugin().enabledEvasions.delete('navigator.plugins');
 
@@ -16,7 +16,8 @@ const maxDescLen = 5000;
 
 const timeout = 60000;
 
-let browser, page;
+const browsers = {};
+const pages = {};
 let cookiesDirPath;
 let cookiesFilePath;
 
@@ -38,6 +39,7 @@ const defaultMessageTransport = {
 export const upload = async (
     credentials,
     videos = [],
+    browser,
     messageTransport = defaultMessageTransport
 ) => {
     cookiesDirPath = path.join('.', 'yt-auth');
@@ -49,8 +51,8 @@ export const upload = async (
             .split('@')[1]
             .replace(/\./g, '_')}.json`
     );
-
-    await launchBrowser();
+    browsers[credentials.email] = browser;
+    await launchBrowser(credentials.email);
     console.log('Loading Account');
     await loadAccount(credentials, messageTransport);
     console.log('Account loaded', videos.length);
@@ -59,7 +61,11 @@ export const upload = async (
     let link;
     for (const video of videos) {
         try {
-            link = await uploadVideo(video, messageTransport);
+            link = await uploadVideo(
+                video,
+                messageTransport,
+                credentials.email
+            );
         } catch (error) {
             console.log(error);
             continue;
@@ -73,14 +79,15 @@ export const upload = async (
         uploadedYTLink.push(link);
     }
 
-    await browser.close();
+    await browsers[credentials.email].close();
 
     return uploadedYTLink;
 };
 
 // 'videoJSON = {}', avoid 'videoJSON = undefined' throw error.
-async function uploadVideo(videoJSON, messageTransport) {
-    messageTransport.userAction('Uploading video: ', videoJSON);
+async function uploadVideo(videoJSON, messageTransport, email) {
+    const page = pages[email];
+    messageTransport.userAction('Uploading video, title: ', videoJSON.title);
     const pathToFile = videoJSON.path;
     if (!pathToFile) {
         throw new Error(
@@ -100,7 +107,7 @@ async function uploadVideo(videoJSON, messageTransport) {
             videoJSON.channelName
         );
 
-        await changeChannel(videoJSON.channelName);
+        await changeChannel(videoJSON.channelName, email);
     }
 
     const title = videoJSON.title;
@@ -204,7 +211,7 @@ async function uploadVideo(videoJSON, messageTransport) {
             ?.innerText.trim()
     );
     if (errorMessage) {
-        await browser.close();
+        await browsers[email].close();
         throw new Error('Youtube returned an error : ' + errorMessage);
     }
 
@@ -227,7 +234,7 @@ async function uploadVideo(videoJSON, messageTransport) {
         dailyUploadPromise,
     ]);
     if (uploadResult === 'dailyUploadReached') {
-        browser.close();
+        browsers[email].close();
         throw new Error('Daily upload limit reached');
     }
 
@@ -483,7 +490,7 @@ async function uploadVideo(videoJSON, messageTransport) {
     try {
         await page.waitForXPath(closeBtnXPath);
     } catch (e) {
-        await browser.close();
+        await browsers[email].close();
         throw new Error(
             'Please make sure you set up your default video visibility correctly, you might have forgotten. More infos : https://github.com/fawazahmed0/youtube-uploader#youtube-setup'
         );
@@ -493,6 +500,7 @@ async function uploadVideo(videoJSON, messageTransport) {
 }
 
 async function loadAccount(credentials, messageTransport) {
+    const page = pages[credentials.email];
     try {
         if (!fs.existsSync(cookiesFilePath)) {
             await login(page, credentials, messageTransport);
@@ -500,8 +508,8 @@ async function loadAccount(credentials, messageTransport) {
     } catch (error) {
         console.log(error);
         if (error.message === 'Recapcha found') {
-            if (browser) {
-                await browser.close();
+            if (browsers[credentials.email]) {
+                await browsers[credentials.email].close();
             }
             throw error;
         }
@@ -512,8 +520,8 @@ async function loadAccount(credentials, messageTransport) {
         } catch (error) {
             console.log(error);
 
-            if (browser) {
-                await browser.close();
+            if (browsers[credentials.email]) {
+                await browsers[credentials.email].close();
             }
             throw error;
         }
@@ -632,13 +640,14 @@ async function changeHomePageLangIfNeeded(localPage) {
     await changeHomePageLangIfNeeded(localPage);
 }
 
-async function launchBrowser() {
+async function launchBrowser(email) {
     try {
         console.log('Getting previos session...');
         const previousSession = fs.existsSync(cookiesFilePath);
         console.log('Launching browser...');
-        browser = MainBrowser;
-        page = await createPage();
+
+        pages[email] = await createPage(browsers[email]);
+        const page = pages[email];
         console.log('Getting new page...');
         await page.setDefaultTimeout(timeout);
         if (previousSession) {
@@ -666,7 +675,7 @@ async function login(localPage, credentials, messageTransport) {
     const xPath = '//*[@id="gb"]/div/div[1]/a';
     await localPage.waitForXPath(xPath);
     await localPage.click('xpath/' + xPath);
-    const newP = await browser.newPage();
+    const newP = await browsers[credentials.email].newPage();
     await newP.setBypassCSP(false);
     const ua =
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
@@ -751,7 +760,7 @@ async function login(localPage, credentials, messageTransport) {
                 await newP.keyboard.press('Enter');
             } catch (error) {
                 console.log(error);
-                await browser.close();
+                await browsers[credentials.email].close();
                 throw error;
             }
         }
@@ -854,7 +863,9 @@ async function sleep(ms) {
     return new Promise((sendMessage) => setTimeout(sendMessage, ms));
 }
 
-async function changeChannel(channelName) {
+async function changeChannel(channelName, email) {
+    const page = pages[email];
+
     await page.goto('https://www.youtube.com/channel_switcher');
 
     const channelNameXPath = `//*[normalize-space(text())='${channelName}']`;

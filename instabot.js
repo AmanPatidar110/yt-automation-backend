@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import chromium from 'chromium';
 import { apiServiceUrl } from './Utility/api-service.js';
-import createPage from './Utility/getPage.js';
+import createPage, { getBrowser } from './Utility/getPage.js';
 
 /** To get the proxy run below code
 
@@ -37,7 +37,8 @@ export const crawl = async (
         });
         const channel = response.data.channel;
 
-        const page = await createPage();
+        const browser = await getBrowser();
+        const page = await createPage(browser);
 
         await page.setRequestInterception(true);
         page.on('request', async (interceptedRequest) => {
@@ -144,9 +145,10 @@ export const crawl = async (
         await page.goto('https://www.instagram.com/direct/inbox/', {
             waitUntil: 'networkidle2',
         });
-
+        browser.close();
         return FETCH_COUNT;
     } catch (error) {
+        browser.close();
         console.log(error);
     }
 };

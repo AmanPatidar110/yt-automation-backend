@@ -1,13 +1,9 @@
 // puppeteer imports ======================
 
-import chromium from 'chromium';
-import createPage from '../Utility/getPage';
-
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
-export const getVideoUrlFromInstaId = async (videoId) => {
+export const getVideoUrlFromInstaId = async (page, videoId) => {
     try {
-        const page = await createPage();
         await page.goto(
             'https://saveinsta.app/en/instagram-reels-video-download',
             {

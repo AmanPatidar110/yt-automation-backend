@@ -9,8 +9,6 @@ import {
 } from '../Controllers/download.controller.js';
 import { fetchKeywordVideos } from '../Controllers/fetchKeywordVideos.js';
 import { upload } from '../Utility/youtubeUploaderLibrary/upload.js';
-import { getVideoUrlForInsta } from '../Controllers/getVideoUrlForInsta.js';
-import { getVideoUrlFromTiktokVideoId } from '../Controllers/getVideoUrlFromTiktokVideoId.js';
 
 import 'puppeteer-extra-plugin-user-data-dir';
 import 'puppeteer-extra-plugin-user-preferences';
@@ -32,9 +30,12 @@ import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js';
 import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js';
 import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js';
 
-import createPage from '../Utility/getPage.js';
+import createPage, { getBrowser } from '../Utility/getPage.js';
 import { apiServiceUrl } from '../Utility/api-service.js';
-import chromium from 'chromium';
+import {
+    getVideoUrlFromInstaId,
+    getVideoUrlFromTiktokVideoId,
+} from '../Controllers/getDownloadUrls.js';
 
 const router = express.Router();
 
@@ -85,7 +86,8 @@ router.get('/', async (req, res, next) => {
         // console.log('videos: ', videos)
         const videoMetaData = [];
 
-        const page = await createPage();
+        const browser = await getBrowser();
+        const page = await createPage(browser);
 
         for (const video of videos) {
             console.log(video.video_id, '=>', 'fetching download url...');
@@ -93,7 +95,10 @@ router.get('/', async (req, res, next) => {
             let videoURL = '';
             try {
                 if (video.source === 'INSTAGRAM') {
-                    videoURL = await getVideoUrlForInsta(video.video_id);
+                    videoURL = await getVideoUrlFromInstaId(
+                        page,
+                        video.video_id
+                    );
                 } else {
                     videoURL = await getVideoUrlFromTiktokVideoId(
                         page,
@@ -134,6 +139,8 @@ router.get('/', async (req, res, next) => {
                 console.log(error);
             }
         }
+
+        await page.close();
         console.log('Videos downloaded locally. Now, Uploading ...');
 
         const credentials = {
@@ -141,7 +148,7 @@ router.get('/', async (req, res, next) => {
             pass: channel.password,
             recoveryemail: 'aamanpatidar110@gmail.com',
         };
-        const resp = await upload(credentials, videoMetaData);
+        const resp = await upload(credentials, videoMetaData, browser);
 
         console.log('Uploading successfully!', resp);
         res.status(200).json({ msg: 'Videos uploaded', resp });
