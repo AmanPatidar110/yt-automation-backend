@@ -12,7 +12,7 @@ const USER_AGENT =
 let MainBrowser;
 const getBrowser = async () => {
     const MainBrowser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         ignoreHTTPSErrors: true,
         executablePath: chromium.path,
         args: [
