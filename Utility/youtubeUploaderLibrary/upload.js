@@ -666,9 +666,20 @@ async function login(localPage, credentials, messageTransport) {
     await newP.type(emailInputSelector, credentials.email, { delay: 200 });
     await newP.keyboard.press('Enter');
 
-    // check if 2fa code was sent to phone
     await newP.waitForNavigation();
     await newP.waitForTimeout(1000);
+
+    const passwordInputSelector =
+        'input[type="password"]:not([aria-hidden="true"])';
+    await newP.waitForSelector(passwordInputSelector);
+    await newP.waitForTimeout(1000);
+    await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
+    await newP.keyboard.press('Enter');
+
+    await newP.waitForNavigation();
+    await newP.waitForTimeout(2000);
+
+    // check if 2fa code was sent to phone
     const googleAppAuthSelector = 'samp';
     const isOnGoogleAppAuthPage = await newP.evaluate(
         (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
@@ -685,16 +696,6 @@ async function login(localPage, credentials, messageTransport) {
                 'Press ' + code + ' on your phone to login'
             );
         }
-    }
-    // password isnt required in the case that a code was sent via google auth
-    else {
-        const passwordInputSelector =
-            'input[type="password"]:not([aria-hidden="true"])';
-        await newP.waitForSelector(passwordInputSelector);
-        await newP.waitForTimeout(3000);
-        await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
-
-        await newP.keyboard.press('Enter');
     }
 
     try {
