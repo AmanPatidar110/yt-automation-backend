@@ -678,33 +678,15 @@ async function login(localPage, credentials, messageTransport) {
         }
         messageTransport.log('Html has been successfully saved');
     });
-    const googleAppAuthSelector = 'samp';
-    const isOnGoogleAppAuthPage = await newP.evaluate(
-        (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
-        googleAppAuthSelector
-    );
-
-    if (isOnGoogleAppAuthPage) {
-        const codeElement = await newP.$('samp');
-        const code = (await codeElement?.getProperty('textContent'))
-            ?.toString()
-            .replace('JSHandle:', '');
-        if (code) {
-            messageTransport.userAction(
-                'Press ' + code + ' on your phone to login'
-            );
-        }
-    }
     // password isnt required in the case that a code was sent via google auth
-    else {
-        const passwordInputSelector =
-            'input[type="password"]:not([aria-hidden="true"])';
-        await newP.waitForSelector(passwordInputSelector);
-        await newP.waitForTimeout(3000);
-        await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
 
-        await newP.keyboard.press('Enter');
-    }
+    const passwordInputSelector =
+        'input[type="password"]:not([aria-hidden="true"])';
+    await newP.waitForSelector(passwordInputSelector);
+    await newP.waitForTimeout(3000);
+    await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
+
+    await newP.keyboard.press('Enter');
 
     await newP.waitForNavigation();
     await newP.waitForTimeout(3000);
@@ -718,6 +700,34 @@ async function login(localPage, credentials, messageTransport) {
         }
         messageTransport.log('Html 2 has been successfully saved');
     });
+
+    const googleAppAuthSelector = 'samp';
+    messageTransport.userAction(
+        'googleAppAuthSelector: ',
+        googleAppAuthSelector
+    );
+    const isOnGoogleAppAuthPage = await newP.evaluate(
+        (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
+        googleAppAuthSelector
+    );
+
+    messageTransport.userAction(
+        'isOnGoogleAppAuthPage: ',
+        isOnGoogleAppAuthPage
+    );
+
+    if (isOnGoogleAppAuthPage) {
+        const codeElement = await newP.$('samp');
+        const code = (await codeElement?.getProperty('textContent'))
+            ?.toString()
+            .replace('JSHandle:', '');
+        messageTransport.userAction('code: ', code);
+        if (code) {
+            messageTransport.userAction(
+                'Press ' + code + ' on your phone to login'
+            );
+        }
+    }
 
     // try {
     //     await newP.waitForNavigation();
