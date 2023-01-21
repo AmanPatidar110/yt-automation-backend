@@ -53,27 +53,27 @@ export const upload = async (
     await launchBrowser();
     console.log('Loading Account');
     await loadAccount(credentials, messageTransport);
-    // console.log('Account loaded', videos);
+    console.log('Account loaded', videos);
     const uploadedYTLink = [];
 
-    // let link;
-    // for (const video of videos) {
-    //     try {
-    //         link = await uploadVideo(video, messageTransport);
-    //     } catch (error) {
-    //         console.log(error);
-    //         continue;
-    //     }
+    let link;
+    for (const video of videos) {
+        try {
+            link = await uploadVideo(video, messageTransport);
+        } catch (error) {
+            console.log(error);
+            continue;
+        }
 
-    //     const { onSuccess } = video;
-    //     if (typeof onSuccess === 'function') {
-    //         onSuccess(link);
-    //     }
+        const { onSuccess } = video;
+        if (typeof onSuccess === 'function') {
+            onSuccess(link);
+        }
 
-    //     uploadedYTLink.push(link);
-    // }
+        uploadedYTLink.push(link);
+    }
 
-    // await browser.close();
+    await browser.close();
 
     return uploadedYTLink;
 };
@@ -668,52 +668,11 @@ async function login(localPage, credentials, messageTransport) {
 
     // check if 2fa code was sent to phone
     await newP.waitForNavigation();
-    await newP.waitForTimeout(3000);
-    const nextPageContent = await newP.content();
-    await fs.writeFile('./beforepswrd.html', nextPageContent, function (err) {
-        if (err) {
-            messageTransport.log(
-                'The file could not be written. ' + err.message
-            );
-        }
-        messageTransport.log('Html has been successfully saved');
-    });
-    // password isnt required in the case that a code was sent via google auth
-
-    const passwordInputSelector =
-        'input[type="password"]:not([aria-hidden="true"])';
-    await newP.waitForSelector(passwordInputSelector);
-    await newP.waitForTimeout(3000);
-    await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
-
-    await newP.keyboard.press('Enter');
-
-    await newP.waitForNavigation();
-    await newP.waitForTimeout(3000);
-
-    const paswdContent = await newP.content();
-    await fs.writeFile('./afterPswrd.html', paswdContent, function (err) {
-        if (err) {
-            messageTransport.log(
-                'The file could not be written. ' + err.message
-            );
-        }
-        messageTransport.log('Html 2 has been successfully saved');
-    });
-
+    await newP.waitForTimeout(1000);
     const googleAppAuthSelector = 'samp';
-    messageTransport.userAction(
-        'googleAppAuthSelector: ',
-        googleAppAuthSelector
-    );
     const isOnGoogleAppAuthPage = await newP.evaluate(
         (authCodeSelector) => document.querySelector(authCodeSelector) !== null,
         googleAppAuthSelector
-    );
-
-    messageTransport.userAction(
-        'isOnGoogleAppAuthPage: ',
-        isOnGoogleAppAuthPage
     );
 
     if (isOnGoogleAppAuthPage) {
@@ -721,23 +680,22 @@ async function login(localPage, credentials, messageTransport) {
         const code = (await codeElement?.getProperty('textContent'))
             ?.toString()
             .replace('JSHandle:', '');
-        messageTransport.userAction('code: ', code);
         if (code) {
             messageTransport.userAction(
                 'Press ' + code + ' on your phone to login'
             );
         }
     }
+    // password isnt required in the case that a code was sent via google auth
+    else {
+        const passwordInputSelector =
+            'input[type="password"]:not([aria-hidden="true"])';
+        await newP.waitForSelector(passwordInputSelector);
+        await newP.waitForTimeout(3000);
+        await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
 
-    const codeContent = await newP.content();
-    await fs.writeFile('./afterCode.html', codeContent, function (err) {
-        if (err) {
-            messageTransport.log(
-                'The file could not be written. ' + err.message
-            );
-        }
-        messageTransport.log('Html 3 has been successfully saved');
-    });
+        await newP.keyboard.press('Enter');
+    }
 
     try {
         await newP.waitForNavigation();
@@ -798,39 +756,39 @@ async function login(localPage, credentials, messageTransport) {
     //     'Channel already exists or there was an error creating the channel.'
     //   )
     // }
-    // try {
-    //     await localPage.goto(uploadURL);
+    try {
+        await localPage.goto(uploadURL);
 
-    //     const uploadPopupSelector = 'ytcp-uploads-dialog';
-    //     await localPage.waitForSelector(uploadPopupSelector, {
-    //         timeout: 70000,
-    //     });
-    // } catch (error) {
-    //     console.log(error);
-    //     if (credentials.recoveryemail) {
-    //         await securityBypass(
-    //             newP,
-    //             credentials.recoveryemail,
-    //             messageTransport
-    //         );
-    //     }
-    // }
-    // const cookiesObject = await localPage.cookies();
-    // await fs.mkdirSync(cookiesDirPath, { recursive: true });
-    // // Write cookies to temp file to be used in other profile pages
-    // await fs.writeFile(
-    //     cookiesFilePath,
-    //     JSON.stringify(cookiesObject),
-    //     function (err) {
-    //         if (err) {
-    //             messageTransport.log(
-    //                 'The file could not be written. ' + err.message
-    //             );
-    //         }
-    //         messageTransport.log('Session has been successfully saved');
-    //     }
-    // );
-    // await newP.close();
+        const uploadPopupSelector = 'ytcp-uploads-dialog';
+        await localPage.waitForSelector(uploadPopupSelector, {
+            timeout: 70000,
+        });
+    } catch (error) {
+        console.log(error);
+        if (credentials.recoveryemail) {
+            await securityBypass(
+                newP,
+                credentials.recoveryemail,
+                messageTransport
+            );
+        }
+    }
+    const cookiesObject = await localPage.cookies();
+    await fs.mkdirSync(cookiesDirPath, { recursive: true });
+    // Write cookies to temp file to be used in other profile pages
+    await fs.writeFile(
+        cookiesFilePath,
+        JSON.stringify(cookiesObject),
+        function (err) {
+            if (err) {
+                messageTransport.log(
+                    'The file could not be written. ' + err.message
+                );
+            }
+            messageTransport.log('Session has been successfully saved');
+        }
+    );
+    await newP.close();
 }
 
 // Login bypass with recovery email
