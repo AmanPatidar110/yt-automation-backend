@@ -1,33 +1,35 @@
-import express from 'express'
-import http from 'http'
-import cors from 'cors'
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
+import * as dotenv from 'dotenv';
 
-import uploadRoutes from './Routes/upload.routes.js'
-import instaRoutes from './Routes/insta.routes.js'
+import uploadRoutes from './Routes/upload.routes.js';
+import instaRoutes from './Routes/insta.routes.js';
 
-const app = express()
-app.use(cors())
-app.use(express.json())
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-global.api_count = 0
+global.api_count = 0;
 
-const server = http.createServer(app)
-const PORT = process.env.PORT || 4000
+const server = http.createServer(app);
+const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, () => {
-  console.log('listening on port *: ', PORT)
-})
-app.use(express.json())
+    console.log('listening on port *: ', PORT);
+});
+app.use(express.json());
 
-app.use('/insta', instaRoutes)
-app.use('/upload', uploadRoutes)
+app.use('/insta', instaRoutes);
+app.use('/upload', uploadRoutes);
 
 app.use((error, req, res, next) => {
-  if (!error.statusCode) error.statusCode = 500
-  if (!error.message) error.message = 'Server side error'
-  const status = error.statusCode
-  const message = error.message
-  const data = error.data
+    if (!error.statusCode) error.statusCode = 500;
+    if (!error.message) error.message = 'Server side error';
+    const status = error.statusCode;
+    const message = error.message;
+    const data = error.data;
 
-  res.status(status).json({ message: message, data: data })
-})
+    res.status(status).json({ message: message, data: data });
+});
