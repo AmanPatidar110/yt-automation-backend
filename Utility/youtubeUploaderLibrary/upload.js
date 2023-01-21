@@ -717,7 +717,7 @@ async function login(localPage, credentials, messageTransport) {
                 '****Press ""' + code + '""" on your phone to login****'
             );
         }
-        await newP.waitForNavigation();
+        await newP.waitForNavigation({ timeout: 180000 });
         await newP.waitForTimeout(2000);
 
         isOnGoogleAppAuthPage = await newP.evaluate(
