@@ -729,54 +729,64 @@ async function login(localPage, credentials, messageTransport) {
         }
     }
 
-    // try {
-    //     await newP.waitForNavigation();
-    //     await newP.waitForTimeout(1000);
+    const codeContent = await newP.content();
+    await fs.writeFile('./afterCode.html', codeContent, function (err) {
+        if (err) {
+            messageTransport.log(
+                'The file could not be written. ' + err.message
+            );
+        }
+        messageTransport.log('Html 3 has been successfully saved');
+    });
 
-    //     // check if sms code was sent
-    //     const smsAuthSelector = '#idvPin';
-    //     const isOnSmsAuthPage = await newP.evaluate(
-    //         (smsAuthSelector) =>
-    //             document.querySelector(smsAuthSelector) !== null,
-    //         smsAuthSelector
-    //     );
-    //     if (isOnSmsAuthPage) {
-    //         try {
-    //             if (!messageTransport.onSmsVerificationCodeSent) {
-    //                 throw new Error(
-    //                     'onSmsVerificationCodeSent not implemented'
-    //                 );
-    //             }
+    try {
+        await newP.waitForNavigation();
+        await newP.waitForTimeout(1000);
 
-    //             const code = await messageTransport.onSmsVerificationCodeSent();
+        // check if sms code was sent
+        const smsAuthSelector = '#idvPin';
+        const isOnSmsAuthPage = await newP.evaluate(
+            (smsAuthSelector) =>
+                document.querySelector(smsAuthSelector) !== null,
+            smsAuthSelector
+        );
+        if (isOnSmsAuthPage) {
+            try {
+                if (!messageTransport.onSmsVerificationCodeSent) {
+                    throw new Error(
+                        'onSmsVerificationCodeSent not implemented'
+                    );
+                }
 
-    //             if (!code) throw new Error('Invalid SMS Code');
+                const code = await messageTransport.onSmsVerificationCodeSent();
 
-    //             await newP.type(smsAuthSelector, code.trim());
-    //             await newP.keyboard.press('Enter');
-    //         } catch (error) {
-    //             console.log(error);
-    //             await browser.close();
-    //             throw error;
-    //         }
-    //     }
-    // } catch (error) {
-    //     console.log(error);
-    //     const recaptchaInputSelector =
-    //         'input[aria-label="Type the text you hear or see"]';
+                if (!code) throw new Error('Invalid SMS Code');
 
-    //     const isOnRecaptchaPage = await localPage.evaluate(
-    //         (recaptchaInputSelector) =>
-    //             document.querySelector(recaptchaInputSelector) !== null,
-    //         recaptchaInputSelector
-    //     );
+                await newP.type(smsAuthSelector, code.trim());
+                await newP.keyboard.press('Enter');
+            } catch (error) {
+                console.log(error);
+                await browser.close();
+                throw error;
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        const recaptchaInputSelector =
+            'input[aria-label="Type the text you hear or see"]';
 
-    //     if (isOnRecaptchaPage) {
-    //         throw new Error('Recaptcha found');
-    //     }
+        const isOnRecaptchaPage = await localPage.evaluate(
+            (recaptchaInputSelector) =>
+                document.querySelector(recaptchaInputSelector) !== null,
+            recaptchaInputSelector
+        );
 
-    //     throw new Error(error);
-    // }
+        if (isOnRecaptchaPage) {
+            throw new Error('Recaptcha found');
+        }
+
+        throw new Error(error);
+    }
 
     // create channel if not already created.
     // try {
