@@ -9,7 +9,11 @@ const getApiKey = (FETCH_COUNT) => {
 export const fetchKeywordVideos = async (forEmail, keywords, forUser) => {
     const keyword = keywords[Math.floor(Math.random() * keywords.length)];
 
-    messageTransport(forEmail, 'api_count: ' + global.api_count);
+    messageTransport(
+        forEmail,
+        'api_count: ' + global.api_count + ': ',
+        keyword
+    );
     let FETCH_COUNT = 0;
     let hasNext = true;
     let cursor = '0';

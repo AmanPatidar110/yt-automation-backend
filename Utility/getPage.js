@@ -13,10 +13,11 @@ export const getBrowser = async () => {
         ignoreHTTPSErrors: true,
         executablePath: chromium.path,
         args: [
-            // '--no-sandbox',
+            '--no-sandbox',
             '--disable-gpu',
             '--enable-webgl',
             '--start-maximized',
+            '--disable-setuid-sandbox',
         ],
     });
     return MainBrowser;

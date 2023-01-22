@@ -81,7 +81,7 @@ router.get('/', async (req, res, next) => {
                         'Error: Fetching video count, increasing api_count'
                     );
                     global.api_count += 1;
-                    continue;
+                    await fetchKeywordVideos(email, channel.keywords, forUser);
                 }
             }
 
@@ -191,7 +191,9 @@ router.get('/', async (req, res, next) => {
     } catch (e) {
         messageTransport('User', e);
         messageTransport('user', 'Browser closed!');
-        browser?.close();
+        if (browser) {
+            browser.close();
+        }
     }
 });
 
