@@ -189,9 +189,9 @@ router.get('/', async (req, res, next) => {
         messageTransport(email, 'Uploading successfully! ' + resp);
         res.status(200).json({ msg: 'Videos uploaded', resp });
     } catch (e) {
-        browser.close();
         messageTransport('User', e);
         messageTransport('user', 'Browser closed!');
+        browser?.close();
     }
 });
 
