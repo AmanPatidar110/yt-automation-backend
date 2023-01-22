@@ -1,19 +1,23 @@
 import fs from 'fs';
 import download from 'download';
-import { messageTransport } from '../Utility/messageTransport.js';
 
-export const fileDownloadWithoutAudio = async (url, videoId, forEmail) => {
+export const fileDownloadWithoutAudio = async (
+    url,
+    videoId,
+    forEmail,
+    messageTransport
+) => {
     const videoWriteStream = fs.createWriteStream(
         `./Videos/${videoId}_${forEmail}.mp4`
     );
     return new Promise((resolve) => {
-        messageTransport(forEmail, 'Downloading video from fetched url...');
+        messageTransport.log('Downloading video from fetched url...');
         download(url)
             .on('progress', (progress) => {
-                messageTransport(forEmail, 'progress: ' + progress);
+                messageTransport.log('progress: ' + progress);
             })
             .on('end', () => {
-                messageTransport(forEmail, 'Downloaded');
+                messageTransport.log('Downloaded');
                 resolve();
             })
             .pipe(videoWriteStream);

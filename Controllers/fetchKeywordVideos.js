@@ -6,14 +6,15 @@ const getApiKey = (FETCH_COUNT) => {
     return apiKey[FETCH_COUNT % 10];
 };
 
-export const fetchKeywordVideos = async (forEmail, keywords, forUser) => {
+export const fetchKeywordVideos = async (
+    forEmail,
+    keywords,
+    forUser,
+    messageTransport
+) => {
     const keyword = keywords[Math.floor(Math.random() * keywords.length)];
 
-    messageTransport(
-        forEmail,
-        'api_count: ' + global.api_count + ': ',
-        keyword
-    );
+    messageTransport.log('api_count: ' + global.api_count + ': ' + keyword);
     let FETCH_COUNT = 0;
     let hasNext = true;
     let cursor = '0';
@@ -57,7 +58,7 @@ export const fetchKeywordVideos = async (forEmail, keywords, forUser) => {
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
 
-        messageTransport(forEmail, error);
+        messageTransport.log(error);
         throw error;
     }
 };

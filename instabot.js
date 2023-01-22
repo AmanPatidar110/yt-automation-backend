@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import chromium from 'chromium';
 import { apiServiceUrl } from './Utility/api-service.js';
 import createPage, { getBrowser } from './Utility/getPage.js';
 
@@ -14,10 +13,10 @@ var config = {
 
 axios(config)
 .then(function (response) {
-  console.log(JSON.stringify(response.data));
+  messageTransport.log(JSON.stringify(response.data));
 })
 .catch(function (error) {
-  console.log(error);
+  messageTransport.log(error);
 });
 
 **/
@@ -27,7 +26,8 @@ export const crawl = async (
     userName,
     password,
     forChannelEmail,
-    forUser
+    forUser,
+    messageTransport
 ) => {
     let FETCH_COUNT = 0;
     try {
@@ -55,7 +55,7 @@ export const crawl = async (
                         'https://www.instagram.com/api/v1/direct_v2/inbox/?persistentBadging=true'
                     )
             ) {
-                console.log(interceptedRequest.url());
+                messageTransport.log(interceptedRequest.url());
                 const videos = [];
                 for (const threadId of threadIds) {
                     const response = await axios.request({
@@ -83,7 +83,7 @@ export const crawl = async (
 
                     videos.push(threadVideos);
                 }
-                console.log(videos, videos.flat().length);
+                messageTransport.log(videos, videos.flat().length);
                 const uploadResponse = await axios.request({
                     method: 'POST',
                     url: `${apiServiceUrl}/video/upload_videos`,
@@ -149,6 +149,6 @@ export const crawl = async (
         return FETCH_COUNT;
     } catch (error) {
         browser.close();
-        console.log(error);
+        messageTransport.log(error);
     }
 };

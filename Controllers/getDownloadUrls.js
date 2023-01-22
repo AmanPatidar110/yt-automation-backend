@@ -2,7 +2,11 @@
 
 // sample video id = https://www.instagram.com/reels/videos/CmNwJ45v4zw/
 
-export const getVideoUrlFromInstaId = async (page, videoId) => {
+export const getVideoUrlFromInstaId = async (
+    page,
+    videoId,
+    messageTransport
+) => {
     try {
         await page.goto(
             'https://saveinsta.app/en/instagram-reels-video-download',
@@ -29,11 +33,11 @@ export const getVideoUrlFromInstaId = async (page, videoId) => {
             (anchor) => anchor.getAttribute('href'),
             handle
         );
-        console.log(videoURL);
+        messageTransport.log(videoURL);
         browser.close();
         return videoURL;
     } catch (error) {
-        console.log(error);
+        messageTransport.log(error);
     }
 };
 
@@ -64,6 +68,6 @@ export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
 
         return href;
     } catch (error) {
-        console.log(error);
+        messageTransport.log(error);
     }
 };
