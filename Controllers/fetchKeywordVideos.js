@@ -14,12 +14,13 @@ export const fetchKeywordVideos = async (
 ) => {
     const keyword = keywords[Math.floor(Math.random() * keywords.length)];
 
-    messageTransport.log('api_count: ' + global.api_count + ': ' + keyword);
     let FETCH_COUNT = 0;
     let hasNext = true;
     let cursor = '0';
 
     try {
+        messageTransport.log('api_count: ' + global.api_count);
+        messageTransport.log('Fetching videos for #' + keyword);
         let options = {
             method: 'GET',
             url: 'https://tiktok-video-no-watermark2.p.rapidapi.com/feed/search',
@@ -58,7 +59,7 @@ export const fetchKeywordVideos = async (
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
 
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         throw error;
     }
 };

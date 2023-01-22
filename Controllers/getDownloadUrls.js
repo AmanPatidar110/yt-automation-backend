@@ -37,7 +37,7 @@ export const getVideoUrlFromInstaId = async (
         browser.close();
         return videoURL;
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
     }
 };
 
@@ -68,6 +68,6 @@ export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
 
         return href;
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
     }
 };

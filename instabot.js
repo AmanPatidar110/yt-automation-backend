@@ -16,7 +16,7 @@ axios(config)
   messageTransport.log(JSON.stringify(response.data));
 })
 .catch(function (error) {
-  messageTransport.log(error);
+  messageTransport.log(error.message || error);
 });
 
 **/
@@ -149,6 +149,6 @@ export const crawl = async (
         return FETCH_COUNT;
     } catch (error) {
         browser.close();
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
     }
 };

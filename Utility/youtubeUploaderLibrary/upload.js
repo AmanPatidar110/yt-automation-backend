@@ -57,7 +57,7 @@ export const upload = async (
         try {
             link = await uploadVideo(video, email, messageTransport);
         } catch (error) {
-            messageTransport.log(error);
+            messageTransport.log(error.message || error);
             continue;
         }
 
@@ -141,12 +141,12 @@ async function uploadVideo(videoJSON, email, messageTransport) {
             await page.waitForXPath(closeBtnXPath);
             break;
         } catch (error) {
-            messageTransport.log(error);
+            messageTransport.log(error.message || error);
             const nextText = i === 0 ? ' trying again' : ' failed again';
             messageTransport.log(
                 'Failed to find the select files button' + nextText
             );
-            messageTransport.log(error);
+            messageTransport.log(error.message || error);
             await page.evaluate(() => {
                 window.onbeforeunload = null;
             });
@@ -319,7 +319,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
                 await page.evaluate((el) => el?.click(), createplaylistdone[0]);
                 break;
             } catch (error) {
-                messageTransport.log(error);
+                messageTransport.log(error.message || error);
                 // Creating new playlist
                 // click on playlist dropdown
                 await page.evaluate((el) => el?.click(), playlist[0]);
@@ -468,7 +468,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
             await closeDialog[0].click();
             break;
         } catch (error) {
-            messageTransport.log(error);
+            messageTransport.log(error.message || error);
             await page.waitForTimeout(5000);
         }
     }
@@ -499,7 +499,7 @@ async function loadAccount(credentials, messageTransport) {
             await login(page, credentials, messageTransport);
         }
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         if (error.message === 'Recapcha found') {
             if (browsers[email]) {
                 await browsers[email].close();
@@ -511,7 +511,7 @@ async function loadAccount(credentials, messageTransport) {
         try {
             await login(page, credentials, messageTransport);
         } catch (error) {
-            messageTransport.log(error);
+            messageTransport.log(error.message || error);
 
             if (browsers[email]) {
                 await browsers[email].close();
@@ -522,7 +522,7 @@ async function loadAccount(credentials, messageTransport) {
     try {
         await changeHomePageLangIfNeeded(page);
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         await login(page, credentials, messageTransport);
     }
 }
@@ -716,7 +716,7 @@ async function login(localPage, credentials, messageTransport) {
             .replace('JSHandle:', '');
         if (code) {
             messageTransport.log(
-                '****Press ""' + code + '""" on your phone to login****'
+                `****Press ""[ ${code} ]"" on your phone to login****`
             );
         }
         await newP.waitForNavigation({ timeout: 180000 });
@@ -752,13 +752,13 @@ async function login(localPage, credentials, messageTransport) {
                 await newP.type(smsAuthSelector, code.trim());
                 await newP.keyboard.press('Enter');
             } catch (error) {
-                messageTransport.log(error);
+                messageTransport.log(error.message || error);
                 await browsers[email].close();
                 throw error;
             }
         }
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         const recaptchaInputSelector =
             'input[aria-label="Type the text you hear or see"]';
 
@@ -780,7 +780,7 @@ async function login(localPage, credentials, messageTransport) {
     //   await localPage.click('#create-channel-button')
     //   await localPage.waitForTimeout(3000)
     // } catch (error) {
-    //   messageTransport.log(error)
+    //   messageTransport.log(error.message || error)
     //   messageTransport.log(
     //     'Channel already exists or there was an error creating the channel.'
     //   )
@@ -793,7 +793,7 @@ async function login(localPage, credentials, messageTransport) {
             timeout: 70000,
         });
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         if (credentials.recoveryemail) {
             await securityBypass(newP, credentials.recoveryemail, email);
         }
@@ -826,7 +826,7 @@ async function securityBypass(localPage, recoveryemail, messageTransport) {
         const confirmRecoveryBtn = await localPage.$x(confirmRecoveryXPath);
         await localPage.evaluate((el) => el?.click(), confirmRecoveryBtn[0]);
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
     }
 
     await localPage.waitForNavigation({

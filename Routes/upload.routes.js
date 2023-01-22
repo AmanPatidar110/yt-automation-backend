@@ -179,14 +179,16 @@ router.get('/', async (req, res, next) => {
                         ),
                     skipProcessingWait: true,
                     onProgress: (progress) => {
-                        messageTransport.log(progress);
+                        messageTransport.log(
+                            `progress: ${progress.progress}, stage: ${progress.stage}`
+                        );
                     },
                     uploadAsDraft: false,
                     isAgeRestriction: false,
                     isNotForKid: true,
                 });
             } catch (error) {
-                messageTransport.log(error);
+                messageTransport.log(error.message || error);
             }
         }
 
@@ -231,7 +233,7 @@ const onVideoUploadSuccess = async (videoId, email, messageTransport) => {
 
         await removeFile(`Videos/${videoId}_${email}.mp4`);
     } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
     }
 };
 

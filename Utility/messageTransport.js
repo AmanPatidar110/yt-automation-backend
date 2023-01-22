@@ -10,12 +10,15 @@ export class MessageTransport {
     }
 
     log = async (...args) => {
+        const ref = realTimeDB.ref(this.foruser || 'USER');
         args.forEach(async (message) => {
-            console.log(`[${this.email || 'User'}]: `, message);
-            const ref = realTimeDB.ref(this.foruser || 'USER');
-            await ref
-                .child(Date.now())
-                .set(`[${this.email || 'User'}]: ${message}`);
+            console.log(`[${this.email || 'User@gmail.com'}]: `, message);
+
+            ref.push({
+                timeStamp: Date.now(),
+                email: this.email,
+                message: message || 'Did not receive any message',
+            });
         });
     };
 }

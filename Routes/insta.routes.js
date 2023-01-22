@@ -32,7 +32,7 @@ router.post('/fetch_messages_from_insta', async (req, res, next) => {
         res.status(200).json({ msg: 'ok', FETCH_COUNT });
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
-        messageTransport.log(error);
+        messageTransport.log(error.message || error);
         return next(error);
     }
 });
