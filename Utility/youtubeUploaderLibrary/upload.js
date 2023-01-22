@@ -3,6 +3,7 @@ import path from 'path';
 
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import createPage from '../getPage.js';
+import { messageTransport } from '../messageTransport.js';
 StealthPlugin().enabledEvasions.delete('iframe.contentWindow');
 StealthPlugin().enabledEvasions.delete('navigator.plugins');
 
@@ -26,48 +27,33 @@ const invalidCharacters = ['<', '>'];
 const uploadURL = 'https://www.youtube.com/upload';
 const homePageURL = 'https://www.youtube.com';
 
-const defaultMessageTransport = {
-    log: console.log,
-    userAction: console.log,
-};
-
 /**
  * import { upload } from 'youtube-videos-uploader'
  * or
  * const { upload } from 'youtube-videos-uploader');
  */
-export const upload = async (
-    credentials,
-    videos = [],
-    browser,
-    messageTransport = defaultMessageTransport
-) => {
+export const upload = async (credentials, videos = [], browser) => {
+    const email = credentials.email;
     cookiesDirPath = path.join('.', 'yt-auth');
     cookiesFilePath = path.join(
         cookiesDirPath,
-        `cookies-${credentials.email
-            .split('@')[0]
-            .replace(/\./g, '_')}-${credentials.email
+        `cookies-${email.split('@')[0].replace(/\./g, '_')}-${email
             .split('@')[1]
             .replace(/\./g, '_')}.json`
     );
-    browsers[credentials.email] = browser;
-    await launchBrowser(credentials.email);
-    console.log('Loading Account');
-    await loadAccount(credentials, messageTransport);
-    console.log('Account loaded', videos.length);
+    browsers[email] = browser;
+    await launchBrowser(email);
+    messageTransport(email, 'Loading Account');
+    await loadAccount(credentials);
+    messageTransport(email, 'Account loaded, video to upload:' + videos.length);
     const uploadedYTLink = [];
 
     let link;
     for (const video of videos) {
         try {
-            link = await uploadVideo(
-                video,
-                messageTransport,
-                credentials.email
-            );
+            link = await uploadVideo(video, email);
         } catch (error) {
-            console.log(error);
+            messageTransport(email, error);
             continue;
         }
 
@@ -79,32 +65,34 @@ export const upload = async (
         uploadedYTLink.push(link);
     }
 
-    await browsers[credentials.email].close();
+    await browsers[email].close();
 
     return uploadedYTLink;
 };
 
 // 'videoJSON = {}', avoid 'videoJSON = undefined' throw error.
-async function uploadVideo(videoJSON, messageTransport, email) {
+async function uploadVideo(videoJSON, email) {
     const page = pages[email];
-    messageTransport.userAction('Uploading video, title: ', videoJSON.title);
+    messageTransport(email, 'Uploading video, title: ' + videoJSON.title);
     const pathToFile = videoJSON.path;
     if (!pathToFile) {
         throw new Error(
-            "function 'upload''s second param 'videos''s item 'video' must include 'path' property."
+            email,
+            ": function 'upload''s second param 'videos''s item 'video' must include 'path' property."
         );
     }
     for (const i in invalidCharacters) {
         if (videoJSON.title.includes(invalidCharacters[i])) {
             throw new Error(
-                `"${videoJSON.title}" includes a character not allowed in youtube titles (${invalidCharacters[i]})`
+                email,
+                ` "${videoJSON.title}" includes a character not allowed in youtube titles (${invalidCharacters[i]})`
             );
         }
     }
     if (videoJSON.channelName) {
-        messageTransport.userAction(
-            'Changing channel to: ',
-            videoJSON.channelName
+        messageTransport(
+            email,
+            'Changing channel to: ' + videoJSON.channelName
         );
 
         await changeChannel(videoJSON.channelName, email);
@@ -152,12 +140,13 @@ async function uploadVideo(videoJSON, messageTransport, email) {
             await page.waitForXPath(closeBtnXPath);
             break;
         } catch (error) {
-            console.log(error);
+            messageTransport(email, error);
             const nextText = i === 0 ? ' trying again' : ' failed again';
-            messageTransport.log(
+            messageTransport(
+                email,
                 'Failed to find the select files button' + nextText
             );
-            messageTransport.log(error);
+            messageTransport(email, error);
             await page.evaluate(() => {
                 window.onbeforeunload = null;
             });
@@ -175,7 +164,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
         page.waitForFileChooser(),
         selectBtn[0].click(), // button that triggers file selection
     ]);
-    messageTransport.userAction('Choosing file: ', pathToFile);
+    messageTransport(email, 'Choosing file: ' + pathToFile);
     await fileChooser.accept([pathToFile]);
     // Setup onProgress
     let progressChecker;
@@ -212,7 +201,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     );
     if (errorMessage) {
         await browsers[email].close();
-        throw new Error('Youtube returned an error : ' + errorMessage);
+        throw new Error(email, 'Youtube returned an error : ' + errorMessage);
     }
 
     // Wait for upload to complete
@@ -235,7 +224,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     ]);
     if (uploadResult === 'dailyUploadReached') {
         browsers[email].close();
-        throw new Error('Daily upload limit reached');
+        throw new Error(email, 'Daily upload limit reached');
     }
 
     // Wait for upload to go away and processing to start, skip the wait if the user doesn't want it.
@@ -264,7 +253,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
 
     // Wait until title & description box pops up
     if (thumb) {
-        messageTransport.userAction('Uploading thumbnail...');
+        messageTransport(email, 'Uploading thumbnail...');
         const thumbnailChooserXpath = xpathTextSelector('upload thumbnail');
         await page.waitForXPath(thumbnailChooserXpath);
         const thumbBtn = await page.$x(thumbnailChooserXpath);
@@ -280,13 +269,13 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     const textBoxes = await page.$x('//*[@id="textbox"]');
     await page.bringToFront();
     // Add the title value
-    messageTransport.userAction('Adding title: ', title);
+    messageTransport(email, 'Adding title: ' + title);
     await textBoxes[0].focus();
     await page.waitForTimeout(1000);
     await textBoxes[0].evaluate((e) => (e.__shady_native_textContent = ''));
     await textBoxes[0].type(title.substring(0, maxTitleLen));
     // Add the Description content
-    messageTransport.userAction('Adding description: ', description);
+    messageTransport(email, 'Adding description...');
     await textBoxes[0].evaluate((e) => (e.__shady_native_textContent = ''));
     await textBoxes[1].type(description.substring(0, maxDescLen));
 
@@ -300,7 +289,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     const playlist = await page.$x("//*[normalize-space(text())='Select']");
     let createplaylistdone;
     if (playlistName) {
-        messageTransport.userAction('Selecting playlist');
+        messageTransport(email, 'Selecting playlist');
 
         // Selecting playlist
         for (let i = 0; i < 2; i++) {
@@ -330,7 +319,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
                 await page.evaluate((el) => el?.click(), createplaylistdone[0]);
                 break;
             } catch (error) {
-                console.log(error);
+                messageTransport(email, error);
                 // Creating new playlist
                 // click on playlist dropdown
                 await page.evaluate((el) => el?.click(), playlist[0]);
@@ -355,7 +344,10 @@ async function uploadVideo(videoJSON, messageTransport, email) {
         }
     }
 
-    messageTransport.userAction('Adding video configs: ');
+    messageTransport(
+        email,
+        'Adding video configs: [isNotForKid, isAgeRestriction]'
+    );
     if (!videoJSON.isNotForKid) {
         await page
             .click("tp-yt-paper-radio-button[name='VIDEO_MADE_FOR_KIDS_MFK']")
@@ -379,22 +371,22 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     // The issue was obviously not the line above but I either way created code to ensure that Show more has been pressed before proceeding.
     const showMoreButton = await page.$('#toggle-button');
     if (showMoreButton === undefined) {
-        throw new Error('uploadVideo - Toggle button not found.');
+        throw new Error(email, 'uploadVideo - Toggle button not found.');
     } else {
-        // console.log( "Show more start." )
+        // messageTransport( "Show more start." )
         while (
             (await page.$('ytcp-video-metadata-editor-advanced')) === undefined
         ) {
-            // console.log( "Show more while." )
+            // messageTransport( "Show more while." )
             await showMoreButton.click();
             await sleep(1000);
         }
-        // console.log( "Show more finished." )
+        // messageTransport( "Show more finished." )
     }
 
     // Add tags
     if (tags) {
-        messageTransport.userAction('Adding tags');
+        messageTransport(email, 'Adding tags');
 
         // show more
         try {
@@ -408,7 +400,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
 
     // Selecting video language
     if (videoLang) {
-        messageTransport.userAction('Selecting video language');
+        messageTransport(email, 'Selecting video language');
 
         const langHandler = await page.$x(
             "//*[normalize-space(text())='Video language']"
@@ -468,7 +460,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
         uploadedLink === shortVideoBaseLink
     );
 
-    messageTransport.userAction('Publishing video...!!!');
+    messageTransport(email, 'Publishing video...!!!');
     const closeDialogXPath = uploadAsDraft ? saveCloseBtnXPath : publishXPath;
     let closeDialog;
     for (let i = 0; i < 10; i++) {
@@ -477,7 +469,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
             await closeDialog[0].click();
             break;
         } catch (error) {
-            console.log(error);
+            messageTransport(email, error);
             await page.waitForTimeout(5000);
         }
     }
@@ -492,6 +484,7 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     } catch (e) {
         await browsers[email].close();
         throw new Error(
+            email,
             'Please make sure you set up your default video visibility correctly, you might have forgotten. More infos : https://github.com/fawazahmed0/youtube-uploader#youtube-setup'
         );
     }
@@ -499,29 +492,30 @@ async function uploadVideo(videoJSON, messageTransport, email) {
     return uploadedLink;
 }
 
-async function loadAccount(credentials, messageTransport) {
-    const page = pages[credentials.email];
+async function loadAccount(credentials) {
+    const email = credentials.email;
+    const page = pages[email];
     try {
         if (!fs.existsSync(cookiesFilePath)) {
-            await login(page, credentials, messageTransport);
+            await login(page, credentials);
         }
     } catch (error) {
-        console.log(error);
+        messageTransport(email, error);
         if (error.message === 'Recapcha found') {
-            if (browsers[credentials.email]) {
-                await browsers[credentials.email].close();
+            if (browsers[email]) {
+                await browsers[email].close();
             }
             throw error;
         }
 
         // Login failed trying again to login
         try {
-            await login(page, credentials, messageTransport);
+            await login(page, credentials);
         } catch (error) {
-            console.log(error);
+            messageTransport(email, error);
 
-            if (browsers[credentials.email]) {
-                await browsers[credentials.email].close();
+            if (browsers[email]) {
+                await browsers[email].close();
             }
             throw error;
         }
@@ -529,9 +523,8 @@ async function loadAccount(credentials, messageTransport) {
     try {
         await changeHomePageLangIfNeeded(page);
     } catch (error) {
-        console.log(error);
-        messageTransport.log(error);
-        await login(page, credentials, messageTransport);
+        messageTransport(email, error);
+        await login(page, credentials);
     }
 }
 
@@ -642,13 +635,13 @@ async function changeHomePageLangIfNeeded(localPage) {
 
 async function launchBrowser(email) {
     try {
-        console.log('Getting previos session...');
+        messageTransport(email, 'Getting previos session...');
         const previousSession = fs.existsSync(cookiesFilePath);
-        console.log('Launching browser...');
+        messageTransport(email, 'Launching browser...');
 
+        messageTransport(email, 'Getting new page...');
         pages[email] = await createPage(browsers[email]);
         const page = pages[email];
-        console.log('Getting new page...');
         await page.setDefaultTimeout(timeout);
         if (previousSession) {
             // If file exist load the cookies
@@ -666,8 +659,9 @@ async function launchBrowser(email) {
     } catch (error) {}
 }
 
-async function login(localPage, credentials, messageTransport) {
-    console.log('Logging in');
+async function login(localPage, credentials) {
+    const email = credentials.email;
+    messageTransport(email, 'Logging in');
     await localPage.goto('https://www.google.com/search?q=gmail');
 
     await localPage.waitForTimeout(2000);
@@ -675,13 +669,13 @@ async function login(localPage, credentials, messageTransport) {
     const xPath = '//*[@id="gb"]/div/div[1]/a';
     await localPage.waitForXPath(xPath);
     await localPage.click('xpath/' + xPath);
-    const newP = await browsers[credentials.email].newPage();
+    const newP = await browsers[email].newPage();
     await newP.setBypassCSP(false);
     const ua =
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
     await newP.setUserAgent(ua);
 
-    messageTransport.userAction('Goto: https://accounts.google.com');
+    messageTransport(email, 'Goto: https://accounts.google.com');
 
     await newP.goto('https://accounts.google.com', {
         waitUntil: 'networkidle2',
@@ -691,9 +685,9 @@ async function login(localPage, credentials, messageTransport) {
 
     const emailInputSelector = 'input[type="email"]';
     await newP.waitForSelector(emailInputSelector);
-    messageTransport.userAction('Entering email: ', credentials.email);
+    messageTransport(email, 'Entering email: ' + email);
 
-    await newP.type(emailInputSelector, credentials.email, { delay: 200 });
+    await newP.type(emailInputSelector, email, { delay: 200 });
     await newP.keyboard.press('Enter');
 
     await newP.waitForNavigation();
@@ -702,7 +696,7 @@ async function login(localPage, credentials, messageTransport) {
     const passwordInputSelector =
         'input[type="password"]:not([aria-hidden="true"])';
     await newP.waitForSelector(passwordInputSelector);
-    messageTransport.userAction('Entering password: ', credentials.pass);
+    messageTransport(email, 'Entering password: *******');
     await newP.type(passwordInputSelector, credentials.pass, { delay: 50 });
     await newP.keyboard.press('Enter');
 
@@ -722,7 +716,8 @@ async function login(localPage, credentials, messageTransport) {
             ?.toString()
             .replace('JSHandle:', '');
         if (code) {
-            messageTransport.userAction(
+            messageTransport(
+                email,
                 '****Press ""' + code + '""" on your phone to login****'
             );
         }
@@ -759,13 +754,13 @@ async function login(localPage, credentials, messageTransport) {
                 await newP.type(smsAuthSelector, code.trim());
                 await newP.keyboard.press('Enter');
             } catch (error) {
-                console.log(error);
-                await browsers[credentials.email].close();
+                messageTransport(email, error);
+                await browsers[email].close();
                 throw error;
             }
         }
     } catch (error) {
-        console.log(error);
+        messageTransport(email, error);
         const recaptchaInputSelector =
             'input[aria-label="Type the text you hear or see"]';
 
@@ -787,8 +782,8 @@ async function login(localPage, credentials, messageTransport) {
     //   await localPage.click('#create-channel-button')
     //   await localPage.waitForTimeout(3000)
     // } catch (error) {
-    //   console.log(error)
-    //   messageTransport.log(
+    //   messageTransport(error)
+    //   messageTransport(
     //     'Channel already exists or there was an error creating the channel.'
     //   )
     // }
@@ -800,13 +795,9 @@ async function login(localPage, credentials, messageTransport) {
             timeout: 70000,
         });
     } catch (error) {
-        console.log(error);
+        messageTransport(email, error);
         if (credentials.recoveryemail) {
-            await securityBypass(
-                newP,
-                credentials.recoveryemail,
-                messageTransport
-            );
+            await securityBypass(newP, credentials.recoveryemail, email);
         }
     }
     const cookiesObject = await localPage.cookies();
@@ -817,18 +808,19 @@ async function login(localPage, credentials, messageTransport) {
         JSON.stringify(cookiesObject),
         function (err) {
             if (err) {
-                messageTransport.log(
+                messageTransport(
+                    email,
                     'The file could not be written. ' + err.message
                 );
             }
-            messageTransport.log('Session has been successfully saved');
+            messageTransport(email, 'Session has been successfully saved');
         }
     );
     await newP.close();
 }
 
 // Login bypass with recovery email
-async function securityBypass(localPage, recoveryemail, messageTransport) {
+async function securityBypass(localPage, recoveryemail, email) {
     try {
         const confirmRecoveryXPath =
             "//*[normalize-space(text())='Confirm your recovery email']";
@@ -837,8 +829,7 @@ async function securityBypass(localPage, recoveryemail, messageTransport) {
         const confirmRecoveryBtn = await localPage.$x(confirmRecoveryXPath);
         await localPage.evaluate((el) => el?.click(), confirmRecoveryBtn[0]);
     } catch (error) {
-        console.log(error);
-        messageTransport.log(error);
+        messageTransport(email, error);
     }
 
     await localPage.waitForNavigation({

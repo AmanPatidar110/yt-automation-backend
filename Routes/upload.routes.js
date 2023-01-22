@@ -36,16 +36,22 @@ import {
     getVideoUrlFromInstaId,
     getVideoUrlFromTiktokVideoId,
 } from '../Controllers/getDownloadUrls.js';
+import { messageTransport } from '../Utility/messageTransport.js';
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
+    let browser;
     try {
         const forUser = req.query.forUser;
         const email = req.query.email;
         const targetUploadCount = req.query.targetUploadCount;
 
-        console.log('uploading videos', forUser, email, targetUploadCount);
+        messageTransport(
+            email,
+            '/upload' + forUser + 'target: ' + targetUploadCount
+        );
+        messageTransport(email, 'Fetching channel');
 
         const channelResponse = await axios.request({
             method: 'GET',
@@ -53,53 +59,83 @@ router.get('/', async (req, res, next) => {
         });
         const channel = channelResponse.data.channel;
 
+        messageTransport(email, 'Fetching video count');
         const response = await axios.request({
             method: 'GET',
             url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`,
         });
 
         let availableCount = response.data.availableCount;
-        console.log('availableCount -> before:', availableCount);
+        messageTransport(email, 'availableCount -> before: ' + availableCount);
         while (availableCount < targetUploadCount) {
             if (availableCount < targetUploadCount) {
-                await fetchKeywordVideos(email, channel.keywords, forUser);
+                try {
+                    messageTransport(
+                        email,
+                        'Fetching keyword videos: api_count' + global.api_count
+                    );
+                    await fetchKeywordVideos(email, channel.keywords, forUser);
+                } catch (error) {
+                    messageTransport(
+                        email,
+                        'Error: Fetching video count, increasing api_count'
+                    );
+                    global.api_count += 1;
+                    continue;
+                }
             }
+
+            messageTransport(email, 'In loop: Fetching video count');
             const response = await axios.request({
                 method: 'GET',
                 url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`,
             });
             availableCount = response.data.availableCount;
-            console.log(
-                'availableCount -> after fetch:',
-                response,
-                availableCount,
-                `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
+            messageTransport(
+                email,
+                'availableCount -> after fetch:' +
+                    availableCount +
+                    `: ${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
             );
         }
 
+        messageTransport(email, 'Fetching videos from firebase');
         const videoResponse = await axios.request({
             method: 'GET',
             url: `${apiServiceUrl}/video/get_videos?forUser=${forUser}&email=${email}&limit=${targetUploadCount}`,
         });
         const videos = videoResponse.data.videos;
 
-        // console.log('videos: ', videos)
+        messageTransport(
+            email,
+            'Fetched videos from firestore: ' + videos.length
+        );
         const videoMetaData = [];
 
-        const browser = await getBrowser();
+        messageTransport(email, 'Launching browser');
+        browser = await getBrowser();
+        messageTransport(email, 'Launching page');
         const page = await createPage(browser);
 
         for (const video of videos) {
-            console.log(video.video_id, '=>', 'fetching download url...');
-
             let videoURL = '';
             try {
                 if (video.source === 'INSTAGRAM') {
+                    messageTransport(
+                        email,
+                        video.video_id +
+                            ' ===> In loop: fetching download url from intagram downloader...'
+                    );
                     videoURL = await getVideoUrlFromInstaId(
                         page,
                         video.video_id
                     );
                 } else {
+                    messageTransport(
+                        email,
+                        video.video_id +
+                            '===> In loop: fetching download url from tiktok downloader...'
+                    );
                     videoURL = await getVideoUrlFromTiktokVideoId(
                         page,
                         video.video_id,
@@ -107,7 +143,7 @@ router.get('/', async (req, res, next) => {
                     );
                 }
 
-                console.log('videoURL', videoURL);
+                messageTransport(email, 'In loop: videoURL found: ' + videoURL);
                 if (!videoURL) {
                     await onVideoUploadSuccess(video.video_id, email);
                     continue;
@@ -129,19 +165,19 @@ router.get('/', async (req, res, next) => {
                         await onVideoUploadSuccess(video.video_id, email),
                     skipProcessingWait: true,
                     onProgress: (progress) => {
-                        console.log('progress', progress);
+                        messageTransport(email, progress);
                     },
                     uploadAsDraft: false,
                     isAgeRestriction: false,
                     isNotForKid: true,
                 });
             } catch (error) {
-                console.log(error);
+                messageTransport(email, error);
             }
         }
 
+        messageTransport(email, 'Closing downloader page');
         await page.close();
-        console.log('Videos downloaded locally. Now, Uploading ...');
 
         const credentials = {
             email,
@@ -150,10 +186,12 @@ router.get('/', async (req, res, next) => {
         };
         const resp = await upload(credentials, videoMetaData, browser);
 
-        console.log('Uploading successfully!', resp);
+        messageTransport(email, 'Uploading successfully! ' + resp);
         res.status(200).json({ msg: 'Videos uploaded', resp });
     } catch (e) {
-        console.log(e);
+        browser.close();
+        messageTransport('User', e);
+        messageTransport('user', 'Browser closed!');
     }
 });
 
@@ -172,7 +210,7 @@ const onVideoUploadSuccess = async (videoId, email) => {
 
         await removeFile(`Videos/${videoId}_${email}.mp4`);
     } catch (error) {
-        console.log(error);
+        messageTransport(email, error);
     }
 };
 
