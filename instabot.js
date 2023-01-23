@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { apiServiceUrl } from './Utility/api-service.js';
+import { getChannel, updateVideos } from './Utility/firebaseUtilFunctions.js';
 import createPage, { getBrowser } from './Utility/getPage.js';
 
 /** To get the proxy run below code
@@ -33,11 +34,11 @@ export const crawl = async (
     let FETCH_COUNT = 0;
     let browser;
     try {
-        const response = await axios.request({
-            method: 'GET',
-            url: `${apiServiceUrl}/channel/get_channel?email=${forChannelEmail}`,
-        });
-        const channel = response.data.channel;
+        const channelResponse = await getChannel(
+            forChannelEmail,
+            messageTransport
+        );
+        const channel = channelResponse.data.channel;
 
         browser = await getBrowser();
         const page = await createPage(browser);
@@ -60,6 +61,8 @@ export const crawl = async (
                 messageTransport.log(interceptedRequest.url());
                 const videos = [];
                 for (const threadId of threadIds) {
+                    messageTransport.log('Fetching thread: ' + threadId);
+
                     const response = await axios.request({
                         method: 'GET',
                         url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/`,
@@ -75,7 +78,8 @@ export const crawl = async (
                                 item?.media_share?.code,
                             title:
                                 item?.clip?.clip?.caption?.text ||
-                                item?.media_share?.caption?.text,
+                                item?.media_share?.caption?.text ||
+                                'Youtube shorts',
                             author: {
                                 unique_id:
                                     item?.media_share?.user?.username ||
@@ -86,23 +90,25 @@ export const crawl = async (
                     videos.push(threadVideos);
                 }
                 messageTransport.log(videos.flat().length);
-                const uploadResponse = await axios.request({
-                    method: 'POST',
-                    url: `${apiServiceUrl}/video/upload_videos`,
-                    data: {
-                        videos: videos.flat(),
-                        forEmail: forChannelEmail,
-                        keyword: '',
-                        source: 'INSTAGRAM',
-                        forUser,
-                        channelKeywords: channel.keywords,
-                        FETCH_COUNT,
-                    },
-                });
+                messageTransport.log('Uploading videos on firbase.');
 
-                FETCH_COUNT = uploadResponse.FETCH_COUNT;
+                const uploadResponse = await updateVideos(
+                    videos.flat(),
+                    forChannelEmail,
+                    '',
+                    'INSTAGRAM',
+                    channel?.keywords,
+                    forUser,
+                    FETCH_COUNT,
+                    messageTransport
+                );
 
-                await browser.close();
+                FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
+                messageTransport.log(uploadResponse.data.msg);
+                messageTransport.log('Closing browser');
+                if (browser) {
+                    await browser.close();
+                }
             }
 
             if (interceptedRequest.isInterceptResolutionHandled()) return;
@@ -142,12 +148,12 @@ export const crawl = async (
         if (linkHandlers.length > 0) {
             await linkHandlers[0].click();
         } else {
-            throw new Error('Link not found');
+            messageTransport.log('Link not found');
         }
+        messageTransport.log('Goto: INBOX!');
         await page.goto('https://www.instagram.com/direct/inbox/', {
             waitUntil: 'networkidle2',
         });
-        browser.close();
         return FETCH_COUNT;
     } catch (error) {
         if (browser) {

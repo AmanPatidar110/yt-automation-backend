@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { apiKey } from '../Constants/keys.js';
 import { apiServiceUrl } from '../Utility/api-service.js';
+import { updateVideos } from '../Utility/firebaseUtilFunctions.js';
 
 const getApiKey = (FETCH_COUNT) => {
     return apiKey[FETCH_COUNT % 10];
@@ -38,22 +39,19 @@ export const fetchKeywordVideos = async (
                 headers: getApiKey(FETCH_COUNT),
             };
 
-            const uploadResponse = await axios.request({
-                method: 'POST',
-                url: `${apiServiceUrl}/video/upload_videos`,
-                data: {
-                    videos: response.data.data.videos,
-                    forEmail,
-                    keyword,
-                    source: 'TIKTOK',
-                    forUser,
-                    channelKeywords: keywords,
-                    FETCH_COUNT,
-                },
-            });
+            const uploadResponse = await updateVideos(
+                response.data.data.videos,
+                forEmail,
+                keyword,
+                'TIKTOK',
+                channelKeywords,
+                forUser,
+                FETCH_COUNT,
+                messageTransport
+            );
 
-            FETCH_COUNT = uploadResponse.FETCH_COUNT;
-
+            messageTransport.log(uploadResponse.data.msg);
+            FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
             global.api_count += 1;
         }
     } catch (error) {

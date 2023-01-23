@@ -78,7 +78,7 @@ export const upload = async (
 // 'videoJSON = {}', avoid 'videoJSON = undefined' throw error.
 async function uploadVideo(videoJSON, email, messageTransport) {
     const page = pages[email];
-    messageTransport.log('Uploading video, title: ' + videoJSON.title);
+    messageTransport.log('Uploading video with title: ' + videoJSON.title);
     const pathToFile = videoJSON.path;
     if (!pathToFile) {
         throw new Error(
