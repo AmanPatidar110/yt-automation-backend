@@ -17,7 +17,7 @@ export const getBrowser = async () => {
             '--disable-gpu',
             '--enable-webgl',
             '--start-maximized',
-            '--disable-setuid-sandbox',
+            // '--disable-setuid-sandbox',
         ],
     });
     return MainBrowser;
