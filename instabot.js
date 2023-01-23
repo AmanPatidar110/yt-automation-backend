@@ -31,6 +31,7 @@ export const crawl = async (
     messageTransport
 ) => {
     let FETCH_COUNT = 0;
+    let browser;
     try {
         const response = await axios.request({
             method: 'GET',
@@ -38,7 +39,7 @@ export const crawl = async (
         });
         const channel = response.data.channel;
 
-        const browser = await getBrowser();
+        browser = await getBrowser();
         const page = await createPage(browser);
 
         await page.setRequestInterception(true);
@@ -149,7 +150,9 @@ export const crawl = async (
         browser.close();
         return FETCH_COUNT;
     } catch (error) {
-        browser.close();
+        if (browser) {
+            browser.close();
+        }
         messageTransport.log(error.message || error);
         console.log(error);
     }
