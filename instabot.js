@@ -84,7 +84,7 @@ export const crawl = async (
 
                     videos.push(threadVideos);
                 }
-                messageTransport.log(videos, videos.flat().length);
+                messageTransport.log(videos.flat().length);
                 const uploadResponse = await axios.request({
                     method: 'POST',
                     url: `${apiServiceUrl}/video/upload_videos`,
