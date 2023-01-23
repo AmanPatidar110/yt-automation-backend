@@ -145,7 +145,8 @@ router.get('/', async (req, res, next) => {
                     videoURL = await getVideoUrlFromTiktokVideoId(
                         page,
                         video.video_id,
-                        video.author.unique_id
+                        video.author.unique_id,
+                        messageTransport
                     );
                 }
 
@@ -189,6 +190,7 @@ router.get('/', async (req, res, next) => {
                 });
             } catch (error) {
                 messageTransport.log(error.message || error);
+                console.log(error);
             }
         }
 
@@ -234,6 +236,7 @@ const onVideoUploadSuccess = async (videoId, email, messageTransport) => {
         await removeFile(`Videos/${videoId}_${email}.mp4`);
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
     }
 };
 

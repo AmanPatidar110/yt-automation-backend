@@ -58,6 +58,7 @@ export const upload = async (
             link = await uploadVideo(video, email, messageTransport);
         } catch (error) {
             messageTransport.log(error.message || error);
+            console.log(error);
             continue;
         }
 
@@ -142,11 +143,13 @@ async function uploadVideo(videoJSON, email, messageTransport) {
             break;
         } catch (error) {
             messageTransport.log(error.message || error);
+            console.log(error);
             const nextText = i === 0 ? ' trying again' : ' failed again';
             messageTransport.log(
                 'Failed to find the select files button' + nextText
             );
             messageTransport.log(error.message || error);
+            console.log(error);
             await page.evaluate(() => {
                 window.onbeforeunload = null;
             });
@@ -320,6 +323,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
                 break;
             } catch (error) {
                 messageTransport.log(error.message || error);
+                console.log(error);
                 // Creating new playlist
                 // click on playlist dropdown
                 await page.evaluate((el) => el?.click(), playlist[0]);
@@ -469,6 +473,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
             break;
         } catch (error) {
             messageTransport.log(error.message || error);
+            console.log(error);
             await page.waitForTimeout(5000);
         }
     }
@@ -500,6 +505,7 @@ async function loadAccount(credentials, messageTransport) {
         }
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
         if (error.message === 'Recapcha found') {
             if (browsers[email]) {
                 await browsers[email].close();
@@ -512,6 +518,7 @@ async function loadAccount(credentials, messageTransport) {
             await login(page, credentials, messageTransport);
         } catch (error) {
             messageTransport.log(error.message || error);
+            console.log(error);
 
             if (browsers[email]) {
                 await browsers[email].close();
@@ -523,6 +530,7 @@ async function loadAccount(credentials, messageTransport) {
         await changeHomePageLangIfNeeded(page);
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
         await login(page, credentials, messageTransport);
     }
 }
@@ -753,12 +761,14 @@ async function login(localPage, credentials, messageTransport) {
                 await newP.keyboard.press('Enter');
             } catch (error) {
                 messageTransport.log(error.message || error);
+                console.log(error);
                 await browsers[email].close();
                 throw error;
             }
         }
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
         const recaptchaInputSelector =
             'input[aria-label="Type the text you hear or see"]';
 
@@ -794,6 +804,7 @@ async function login(localPage, credentials, messageTransport) {
         });
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
         if (credentials.recoveryemail) {
             await securityBypass(newP, credentials.recoveryemail, email);
         }
@@ -827,6 +838,7 @@ async function securityBypass(localPage, recoveryemail, messageTransport) {
         await localPage.evaluate((el) => el?.click(), confirmRecoveryBtn[0]);
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
     }
 
     await localPage.waitForNavigation({

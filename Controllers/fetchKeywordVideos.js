@@ -60,6 +60,7 @@ export const fetchKeywordVideos = async (
         if (!error.statusCode) error.statusCode = 500;
 
         messageTransport.log(error.message || error);
+        console.log(error);
         throw error;
     }
 };

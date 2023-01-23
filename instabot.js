@@ -17,6 +17,7 @@ axios(config)
 })
 .catch(function (error) {
   messageTransport.log(error.message || error);
+console.log(error)
 });
 
 **/
@@ -150,5 +151,6 @@ export const crawl = async (
     } catch (error) {
         browser.close();
         messageTransport.log(error.message || error);
+        console.log(error);
     }
 };

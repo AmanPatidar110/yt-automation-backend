@@ -33,6 +33,7 @@ router.post('/fetch_messages_from_insta', async (req, res, next) => {
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
         messageTransport.log(error.message || error);
+        console.log(error);
         return next(error);
     }
 });

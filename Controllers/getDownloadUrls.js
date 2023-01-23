@@ -38,10 +38,16 @@ export const getVideoUrlFromInstaId = async (
         return videoURL;
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
     }
 };
 
-export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
+export const getVideoUrlFromTiktokVideoId = async (
+    page,
+    videoId,
+    user,
+    messageTransport
+) => {
     try {
         await page.goto('https://tiktokdownload.online/', {
             waitUntil: 'networkidle2',
@@ -69,5 +75,6 @@ export const getVideoUrlFromTiktokVideoId = async (page, videoId, user) => {
         return href;
     } catch (error) {
         messageTransport.log(error.message || error);
+        console.log(error);
     }
 };
