@@ -44,7 +44,7 @@ export const fetchKeywordVideos = async (
                 forEmail,
                 keyword,
                 'TIKTOK',
-                channelKeywords,
+                keywords,
                 forUser,
                 FETCH_COUNT,
                 messageTransport
