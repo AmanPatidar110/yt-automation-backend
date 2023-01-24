@@ -72,6 +72,7 @@ router.get('/', async (req, res, next) => {
             email,
             'availableCount -> before: ' + availableCount
         );
+        let INCREASE_COUNT_AFTER_FAILING = 0;
         while (availableCount < targetUploadCount) {
             if (availableCount < targetUploadCount) {
                 try {
@@ -90,12 +91,14 @@ router.get('/', async (req, res, next) => {
                         'Error: Fetching video count, increasing api_count'
                     );
                     global.api_count += 1;
-                    await fetchKeywordVideos(
-                        email,
-                        channel.keywords,
-                        forUser,
-                        messageTransport
-                    );
+                    INCREASE_COUNT_AFTER_FAILING += 1;
+                    if (INCREASE_COUNT_AFTER_FAILING > 9) {
+                        messageTransport.log(
+                            'Error: All RAPID APIs are failing'
+                        );
+                    } else {
+                        continue;
+                    }
                 }
             }
 

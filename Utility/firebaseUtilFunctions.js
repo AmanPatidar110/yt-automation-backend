@@ -80,7 +80,8 @@ export const updateVideos = async (
                         description: `${video.title}
 
 Video credit goes to: @${video.author.unique_id} (${source}) 
-For removal request please refer this email: ${forEmail}`,
+For removal request please refer this email: ${forEmail}
+`,
                         tags: [
                             ...video.title.split('#'),
                             ...channelKeywords,
