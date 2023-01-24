@@ -34,7 +34,7 @@ export const getVideoUrlFromInstaId = async (
             handle
         );
         messageTransport.log(videoURL);
-        browser.close();
+
         return videoURL;
     } catch (error) {
         messageTransport.log(error.message || error);
