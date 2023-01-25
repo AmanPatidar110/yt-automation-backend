@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { apiKey } from '../Constants/keys.js';
-import { apiServiceUrl } from '../Utility/api-service.js';
 import { updateVideos } from '../Utility/firebaseUtilFunctions.js';
 
 const getApiKey = (FETCH_COUNT) => {

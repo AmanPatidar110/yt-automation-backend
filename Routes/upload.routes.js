@@ -31,7 +31,6 @@ import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js';
 import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js';
 
 import createPage, { getBrowser } from '../Utility/getPage.js';
-import { apiServiceUrl } from '../Utility/api-service.js';
 import {
     getVideoUrlFromInstaId,
     getVideoUrlFromTiktokVideoId,

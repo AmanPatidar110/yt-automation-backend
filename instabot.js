@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import { apiServiceUrl } from './Utility/api-service.js';
 import { getChannel, updateVideos } from './Utility/firebaseUtilFunctions.js';
 import createPage, { getBrowser } from './Utility/getPage.js';
 

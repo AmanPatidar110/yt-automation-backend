@@ -2,7 +2,6 @@ import express from 'express';
 import axios from 'axios';
 import { crawl } from '../instabot.js';
 
-import { apiServiceUrl } from '../Utility/api-service.js';
 import { MessageTransport } from '../Utility/messageTransport.js';
 import {
     getInstaAccount,
