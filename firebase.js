@@ -17,4 +17,5 @@ admin.initializeApp({
 const realTimeDB = getDatabase();
 // var ref = reaTimeDB.ref('restricted_access/secret_document');
 
+export const db = admin.firestore();
 export { realTimeDB };

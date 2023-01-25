@@ -4,6 +4,8 @@ import cors from 'cors';
 
 import uploadRoutes from './Routes/upload.routes.js';
 import instaRoutes from './Routes/insta.routes.js';
+import channelRoutes from './Routes/channel.routes.js';
+import { runCron } from './cron.js';
 
 const app = express();
 app.use(cors());
@@ -14,6 +16,7 @@ global.api_count = 0;
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
+runCron();
 server.listen(PORT, () => {
     console.log('listening on port *: ', PORT);
 });
@@ -21,6 +24,7 @@ app.use(express.json());
 
 app.use('/insta', instaRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/channel', channelRoutes);
 
 app.use((error, req, res, next) => {
     if (!error.statusCode) error.statusCode = 500;

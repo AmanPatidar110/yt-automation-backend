@@ -59,7 +59,11 @@ export const upload = async (
         } catch (error) {
             messageTransport.log(error.message || error);
             console.log(error);
-            continue;
+            if (browsers[email]) {
+                continue;
+            } else {
+                break;
+            }
         }
 
         const { onSuccess } = video;
@@ -78,18 +82,16 @@ export const upload = async (
 // 'videoJSON = {}', avoid 'videoJSON = undefined' throw error.
 async function uploadVideo(videoJSON, email, messageTransport) {
     const page = pages[email];
-    messageTransport.log('Uploading video, title: ' + videoJSON.title);
+    messageTransport.log('Uploading video with title: ' + videoJSON.title);
     const pathToFile = videoJSON.path;
     if (!pathToFile) {
         throw new Error(
-            email,
             ": function 'upload''s second param 'videos''s item 'video' must include 'path' property."
         );
     }
     for (const i in invalidCharacters) {
         if (videoJSON.title.includes(invalidCharacters[i])) {
             throw new Error(
-                email,
                 ` "${videoJSON.title}" includes a character not allowed in youtube titles (${invalidCharacters[i]})`
             );
         }
@@ -204,7 +206,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
     );
     if (errorMessage) {
         await browsers[email].close();
-        throw new Error(email, 'Youtube returned an error : ' + errorMessage);
+        throw new Error('Youtube returned an error : ' + errorMessage);
     }
 
     // Wait for upload to complete
@@ -227,7 +229,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
     ]);
     if (uploadResult === 'dailyUploadReached') {
         browsers[email].close();
-        throw new Error(email, 'Daily upload limit reached');
+        throw new Error('Daily upload limit reached');
     }
 
     // Wait for upload to go away and processing to start, skip the wait if the user doesn't want it.
@@ -374,7 +376,7 @@ async function uploadVideo(videoJSON, email, messageTransport) {
     // The issue was obviously not the line above but I either way created code to ensure that Show more has been pressed before proceeding.
     const showMoreButton = await page.$('#toggle-button');
     if (showMoreButton === undefined) {
-        throw new Error(email, 'uploadVideo - Toggle button not found.');
+        throw new Error('uploadVideo - Toggle button not found.');
     } else {
         // messageTransport.log( "Show more start." )
         while (

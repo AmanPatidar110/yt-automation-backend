@@ -37,6 +37,12 @@ import {
     getVideoUrlFromTiktokVideoId,
 } from '../Controllers/getDownloadUrls.js';
 import { MessageTransport } from '../Utility/messageTransport.js';
+import {
+    getChannel,
+    getVideoCount,
+    getVideos,
+    updateVideo,
+} from '../Utility/firebaseUtilFunctions.js';
 
 const router = express.Router();
 
@@ -52,23 +58,21 @@ router.get('/', async (req, res, next) => {
         );
         messageTransport.log('Fetching channel');
 
-        const channelResponse = await axios.request({
-            method: 'GET',
-            url: `${apiServiceUrl}/channel/get_channel?email=${email}`,
-        });
+        const channelResponse = await getChannel(email, messageTransport);
         const channel = channelResponse.data.channel;
 
         messageTransport.log('Fetching video count');
-        const response = await axios.request({
-            method: 'GET',
-            url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`,
-        });
 
-        let availableCount = response.data.availableCount;
+        let availableCount = await getVideoCount(
+            forUser,
+            email,
+            messageTransport
+        );
         messageTransport.log(
             email,
             'availableCount -> before: ' + availableCount
         );
+        let INCREASE_COUNT_AFTER_FAILING = 0;
         while (availableCount < targetUploadCount) {
             if (availableCount < targetUploadCount) {
                 try {
@@ -87,32 +91,36 @@ router.get('/', async (req, res, next) => {
                         'Error: Fetching video count, increasing api_count'
                     );
                     global.api_count += 1;
-                    await fetchKeywordVideos(
-                        email,
-                        channel.keywords,
-                        forUser,
-                        messageTransport
-                    );
+                    INCREASE_COUNT_AFTER_FAILING += 1;
+                    if (INCREASE_COUNT_AFTER_FAILING > 9) {
+                        messageTransport.log(
+                            'Error: All RAPID APIs are failing'
+                        );
+                    } else {
+                        continue;
+                    }
                 }
             }
 
             messageTransport.log('In loop: Fetching video count');
-            const response = await axios.request({
-                method: 'GET',
-                url: `${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`,
-            });
-            availableCount = response.data.availableCount;
+
+            availableCount = await getVideoCount(
+                forUser,
+                email,
+                messageTransport
+            );
             messageTransport.log(
-                'availableCount -> after fetch:' + availableCount,
-                `: ${apiServiceUrl}/video/get_videos_count?forUser=${forUser}&email=${email}`
+                'availableCount -> after fetch:' + availableCount
             );
         }
 
         messageTransport.log('Fetching videos from firebase');
-        const videoResponse = await axios.request({
-            method: 'GET',
-            url: `${apiServiceUrl}/video/get_videos?forUser=${forUser}&email=${email}&limit=${targetUploadCount}`,
-        });
+        const videoResponse = await getVideos(
+            forUser,
+            email,
+            targetUploadCount,
+            messageTransport
+        );
         const videos = videoResponse.data.videos;
 
         messageTransport.log('Fetched videos from firestore: ' + videos.length);
@@ -222,16 +230,14 @@ router.get('/', async (req, res, next) => {
 
 const onVideoUploadSuccess = async (videoId, email, messageTransport) => {
     try {
-        await axios.request({
-            method: 'PATCH',
-            url: `${apiServiceUrl}/video/update_video`,
-            data: {
-                videoId,
-                video: {
-                    uploaded: true,
-                },
-            },
-        });
+        const video = {
+            uploaded: true,
+        };
+        const updateResponse = await updateVideo(
+            video,
+            videoId,
+            messageTransport
+        );
 
         await removeFile(`Videos/${videoId}_${email}.mp4`);
     } catch (error) {
