@@ -122,6 +122,7 @@ export const getInstaAccount = async (
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
         messageTransport.log(error.message || error);
+        throw error;
     }
 };
 export const getInstaAccounts = async (forUser, messageTransport = console) => {
