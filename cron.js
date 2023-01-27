@@ -8,7 +8,9 @@ export const runCron = () => {
 
         var config = {
             method: 'get',
-            url: 'http://localhost:4000/upload?email=urbanlibaaz@gmail.com&forUser=AMAN&targetUploadCount=3',
+            url: `http://localhost:4000/upload?email=urbanlibaaz@gmail.com&forUser=AMAN&targetUploadCount=${Math.ceil(
+                Math.random() * 6
+            )}`,
         };
 
         const response = await axios(config);
@@ -20,7 +22,9 @@ export const runCron = () => {
 
         var config = {
             method: 'get',
-            url: 'http://localhost:4000/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=3',
+            url: `http://localhost:4000/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=${Math.ceil(
+                Math.random() * 6
+            )}`,
         };
 
         const response = await axios(config);
@@ -32,7 +36,9 @@ export const runCron = () => {
 
         var config = {
             method: 'get',
-            url: 'http://localhost:4000/upload?email=theurbandenizens@gmail.com&forUser=AMAN&targetUploadCount=3',
+            url: `http://localhost:4000/upload?email=theurbandenizens@gmail.com&forUser=AMAN&targetUploadCount=${Math.ceil(
+                Math.random() * 6
+            )}`,
         };
 
         const response = await axios(config);
@@ -44,7 +50,9 @@ export const runCron = () => {
 
         var config = {
             method: 'get',
-            url: 'http://localhost:4000/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=3',
+            url: `http://localhost:4000/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=${Math.ceil(
+                Math.random() * 6
+            )}`,
         };
 
         const response = await axios(config);

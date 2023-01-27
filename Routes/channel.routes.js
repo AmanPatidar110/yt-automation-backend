@@ -7,10 +7,10 @@ const router = express.Router();
 router.post('/add_channel', async (req, res, next) => {
     try {
         const forUser = req.body.forUser;
-        const channelEmail = req.body.channelEmail;
-        const channelPassword = req.body.channelPassword;
+        const channelEmail = req.body.email;
+        const channelPassword = req.body.password;
         const keywords = req.body.keywords;
-        const channelName = req.body.channelName;
+        const channelName = req.body.name;
         const defaultUploadCount = req.body.defaultUploadCount;
 
         console.log('body', channelEmail, channelPassword, keywords);

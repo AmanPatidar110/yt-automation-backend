@@ -386,9 +386,10 @@ async function uploadVideo(videoJSON, email, messageTransport) {
             await showMoreButton.click();
             await sleep(1000);
         }
-        // messageTransport.log( "Show more finished." )
+        messageTransport.log('Show more finished.');
     }
 
+    await sleep(1000);
     // Add tags
     if (tags) {
         messageTransport.log('Adding tags');
@@ -400,7 +401,9 @@ async function uploadVideo(videoJSON, email, messageTransport) {
                 '[aria-label="Tags"]',
                 tags.join(', ').substring(0, 495) + ', '
             );
-        } catch (err) {}
+        } catch (err) {
+            messageTransport.log(err.message || err);
+        }
     }
 
     // Selecting video language
