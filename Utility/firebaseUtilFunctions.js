@@ -90,9 +90,7 @@ For removal request please refer this email: ${forEmail}
                             'shorts_video',
                             'shortsfeed',
                             'trending',
-                        ]
-                            .join(', #')
-                            .substr(0, 450),
+                        ],
                         uploaded: false,
                         source,
                     });
