@@ -42,6 +42,7 @@ import {
     getVideos,
     updateVideo,
 } from "../Utility/firebaseUtilFunctions.js";
+import { apiKey } from "../Constants/keys.js";
 
 const router = express.Router();
 
@@ -91,7 +92,7 @@ router.get("/", async (req, res, next) => {
                     );
                     global.api_count += 1;
                     INCREASE_COUNT_AFTER_FAILING += 1;
-                    if (INCREASE_COUNT_AFTER_FAILING > 9) {
+                    if (INCREASE_COUNT_AFTER_FAILING > apiKey.length) {
                         messageTransport.log(
                             "Error: All RAPID APIs are failing"
                         );
