@@ -78,24 +78,33 @@ router.get("/", async (req, res, next) => {
                 try {
                     messageTransport.log(
                         email,
-                        "Fetching keyword videos: api_count" + global.api_count
+                        "Fetching keyword videos: api_count: " +
+                            global.api_count
                     );
                     await fetchKeywordVideos(
                         email,
-                        channel.keywords,
+                        channel?.keywords,
                         forUser,
                         messageTransport
                     );
                 } catch (error) {
                     messageTransport.log(
-                        "Error: Fetching video count, increasing api_count"
+                        "Error: Fetching video count, increasing api_count: ",
+                        error
                     );
+
                     global.api_count += 1;
                     INCREASE_COUNT_AFTER_FAILING += 1;
                     if (INCREASE_COUNT_AFTER_FAILING > apiKey.length) {
                         messageTransport.log(
                             "Error: All RAPID APIs are failing"
                         );
+                        messageTransport.log(
+                            "INCREASE_COUNT_AFTER_FAILING",
+                            INCREASE_COUNT_AFTER_FAILING
+                        );
+                        messageTransport.log("apiKey.length: ", apiKey.length);
+                        break;
                     } else {
                         continue;
                     }
@@ -123,7 +132,9 @@ router.get("/", async (req, res, next) => {
         );
         const videos = videoResponse.data.videos;
 
-        messageTransport.log("Fetched videos from firestore: " + videos.length);
+        messageTransport.log(
+            "Fetched videos from firestore: " + videos?.length
+        );
         const videoMetaData = [];
 
         messageTransport.log("Launching browser");
