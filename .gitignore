@@ -1,5 +1,7 @@
 /.vscode
 /browser
 /node_modules
-
+/daemon
+/yt-auth
+/cron.js
 /package-lock.json

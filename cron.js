@@ -3,7 +3,7 @@ import cron from 'node-cron';
 
 export const runCron = () => {
     console.log('Scheduling crons');
-    cron.schedule('0 * * * * sleep $((RANDOM%3600))', async () => {
+    cron.schedule('0 * * * *', async () => {
         console.log('Hitting /upload for:', 'abhishek.deoghar@proton.me');
 
         var config = {
