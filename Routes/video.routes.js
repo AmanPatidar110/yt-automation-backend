@@ -1,10 +1,6 @@
 import express from 'express';
 import { db } from '../firebase.js';
-import {
-    getVideos,
-    updateVideo,
-    updateVideos,
-} from '../Utility/firebaseUtilFunctions.js';
+import { getVideos, updateVideo } from '../Utility/firebaseUtilFunctions.js';
 
 const router = express.Router();
 

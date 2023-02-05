@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import { apiServiceUrl } from './Utility/api-service.js';
 import { getChannel, updateVideos } from './Utility/firebaseUtilFunctions.js';
 import createPage, { getBrowser } from './Utility/getPage.js';
 
@@ -63,23 +62,28 @@ export const crawl = async (
                 for (const threadId of threadIds) {
                     messageTransport.log('Fetching thread: ' + threadId);
 
-                    const response = await axios.request({
-                        method: 'GET',
-                        url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/`,
-                        headers: interceptedRequest.headers(),
-                    });
-                    const threadVideos = mapVideos(
-                        response.data?.thread?.items
-                    );
-                    const response1 = await axios.request({
-                        method: 'GET',
-                        url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/?cursor=${response.data?.thread?.next_cursor}`,
-                        headers: interceptedRequest.headers(),
-                    });
-                    const threadVideos2 = mapVideos(
-                        response.data?.thread?.items
-                    );
-                    videos.push([...threadVideos, ...threadVideos2]);
+                    let cursor = '';
+                    const videosToFetch = 120;
+
+                    for (
+                        let index = 0;
+                        index < Math.ceil(videosToFetch / 20);
+                        index++
+                    ) {
+                        const response = await axios.request({
+                            method: 'GET',
+                            url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/${
+                                cursor ? `?cursor=${cursor}` : ''
+                            }`,
+                            headers: interceptedRequest.headers(),
+                        });
+                        const threadVideos = mapVideos(
+                            response.data?.thread?.items
+                        );
+
+                        cursor = response.data?.thread?.next_cursor;
+                        videos.push([...threadVideos]);
+                    }
                 }
                 messageTransport.log(
                     `Fetched videos count: ${videos.flat().length}`

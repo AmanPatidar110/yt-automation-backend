@@ -1,52 +1,52 @@
-import express from 'express';
-import axios from 'axios';
+import express from "express";
+import axios from "axios";
 
 // puppeteer imports ======================
 
 import {
     fileDownloadWithoutAudio,
     removeFile,
-} from '../Controllers/download.controller.js';
-import { fetchKeywordVideos } from '../Controllers/fetchKeywordVideos.js';
-import { upload } from '../Utility/youtubeUploaderLibrary/upload.js';
+} from "../Controllers/download.controller.js";
+import { fetchKeywordVideos } from "../Controllers/fetchKeywordVideos.js";
+import { upload } from "../Utility/youtubeUploaderLibrary/upload.js";
 
-import 'puppeteer-extra-plugin-user-data-dir';
-import 'puppeteer-extra-plugin-user-preferences';
-import 'puppeteer-extra-plugin-stealth/evasions/chrome.app/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/chrome.csi/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/chrome.runtime/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/defaultArgs/index.js'; // pkg warned me this one was missing
-import 'puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/media.codecs/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.languages/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.permissions/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.plugins/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.vendor/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/navigator.webdriver/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/sourceurl/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js';
-import 'puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js';
+import "puppeteer-extra-plugin-user-data-dir";
+import "puppeteer-extra-plugin-user-preferences";
+import "puppeteer-extra-plugin-stealth/evasions/chrome.app/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/chrome.csi/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/chrome.runtime/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/defaultArgs/index.js"; // pkg warned me this one was missing
+import "puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/media.codecs/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.hardwareConcurrency/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.languages/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.permissions/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.plugins/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.vendor/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/navigator.webdriver/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/sourceurl/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/user-agent-override/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/webgl.vendor/index.js";
+import "puppeteer-extra-plugin-stealth/evasions/window.outerdimensions/index.js";
 
-import createPage, { getBrowser } from '../Utility/getPage.js';
-import { apiServiceUrl } from '../Utility/api-service.js';
+import createPage, { getBrowser } from "../Utility/getPage.js";
 import {
     getVideoUrlFromInstaId,
     getVideoUrlFromTiktokVideoId,
-} from '../Controllers/getDownloadUrls.js';
-import { MessageTransport } from '../Utility/messageTransport.js';
+} from "../Controllers/getDownloadUrls.js";
+import { MessageTransport } from "../Utility/messageTransport.js";
 import {
     getChannel,
     getVideoCount,
     getVideos,
     updateVideo,
-} from '../Utility/firebaseUtilFunctions.js';
+} from "../Utility/firebaseUtilFunctions.js";
+import { apiKey } from "../Constants/keys.js";
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
     let browser;
     const forUser = req.query.forUser;
     const email = req.query.email;
@@ -54,14 +54,14 @@ router.get('/', async (req, res, next) => {
     const messageTransport = new MessageTransport({ email, forUser });
     try {
         messageTransport.log(
-            '/upload' + forUser + 'target: ' + targetUploadCount
+            "/upload" + forUser + "target: " + targetUploadCount
         );
-        messageTransport.log('Fetching channel');
+        messageTransport.log("Fetching channel");
 
         const channelResponse = await getChannel(email, messageTransport);
         const channel = channelResponse.data.channel;
 
-        messageTransport.log('Fetching video count');
+        messageTransport.log("Fetching video count");
 
         let availableCount = await getVideoCount(
             forUser,
@@ -70,7 +70,7 @@ router.get('/', async (req, res, next) => {
         );
         messageTransport.log(
             email,
-            'availableCount -> before: ' + availableCount
+            "availableCount -> before: " + availableCount
         );
         let INCREASE_COUNT_AFTER_FAILING = 0;
         while (availableCount < targetUploadCount) {
@@ -78,31 +78,40 @@ router.get('/', async (req, res, next) => {
                 try {
                     messageTransport.log(
                         email,
-                        'Fetching keyword videos: api_count' + global.api_count
+                        "Fetching keyword videos: api_count: " +
+                            global.api_count
                     );
                     await fetchKeywordVideos(
                         email,
-                        channel.keywords,
+                        channel?.keywords,
                         forUser,
                         messageTransport
                     );
                 } catch (error) {
                     messageTransport.log(
-                        'Error: Fetching video count, increasing api_count'
+                        "Error: Fetching video count, increasing api_count: ",
+                        error
                     );
+
                     global.api_count += 1;
                     INCREASE_COUNT_AFTER_FAILING += 1;
-                    if (INCREASE_COUNT_AFTER_FAILING > 9) {
+                    if (INCREASE_COUNT_AFTER_FAILING > apiKey.length) {
                         messageTransport.log(
-                            'Error: All RAPID APIs are failing'
+                            "Error: All RAPID APIs are failing"
                         );
+                        messageTransport.log(
+                            "INCREASE_COUNT_AFTER_FAILING",
+                            INCREASE_COUNT_AFTER_FAILING
+                        );
+                        messageTransport.log("apiKey.length: ", apiKey.length);
+                        break;
                     } else {
                         continue;
                     }
                 }
             }
 
-            messageTransport.log('In loop: Fetching video count');
+            messageTransport.log("In loop: Fetching video count");
 
             availableCount = await getVideoCount(
                 forUser,
@@ -110,11 +119,11 @@ router.get('/', async (req, res, next) => {
                 messageTransport
             );
             messageTransport.log(
-                'availableCount -> after fetch:' + availableCount
+                "availableCount -> after fetch:" + availableCount
             );
         }
 
-        messageTransport.log('Fetching videos from firebase');
+        messageTransport.log("Fetching videos from firebase");
         const videoResponse = await getVideos(
             forUser,
             email,
@@ -123,22 +132,24 @@ router.get('/', async (req, res, next) => {
         );
         const videos = videoResponse.data.videos;
 
-        messageTransport.log('Fetched videos from firestore: ' + videos.length);
+        messageTransport.log(
+            "Fetched videos from firestore: " + videos?.length
+        );
         const videoMetaData = [];
 
-        messageTransport.log('Launching browser');
+        messageTransport.log("Launching browser");
         browser = await getBrowser();
-        messageTransport.log('Launching page');
+        messageTransport.log("Launching page");
         const page = await createPage(browser);
 
         for (const video of videos) {
-            let videoURL = '';
+            let videoURL = "";
             try {
-                if (video.source === 'INSTAGRAM') {
+                if (video.source === "INSTAGRAM") {
                     messageTransport.log(
                         email,
                         video.video_id +
-                            ' ===> In loop: fetching download url from intagram downloader...'
+                            " ===> In loop: fetching download url from intagram downloader..."
                     );
                     videoURL = await getVideoUrlFromInstaId(
                         page,
@@ -148,7 +159,7 @@ router.get('/', async (req, res, next) => {
                 } else {
                     messageTransport.log(
                         video.video_id +
-                            '===> In loop: fetching download url from tiktok downloader...'
+                            "===> In loop: fetching download url from tiktok downloader..."
                     );
                     videoURL = await getVideoUrlFromTiktokVideoId(
                         page,
@@ -158,57 +169,64 @@ router.get('/', async (req, res, next) => {
                     );
                 }
 
-                messageTransport.log('In loop: videoURL found: ' + videoURL);
+                messageTransport.log("In loop: videoURL found: " + videoURL);
                 if (!videoURL) {
                     await onVideoUploadSuccess(
                         video.video_id,
                         email,
                         messageTransport
                     );
-                    continue;
+                } else {
+                    await fileDownloadWithoutAudio(
+                        videoURL,
+                        video.video_id,
+                        email,
+                        messageTransport
+                    );
+                    console.log("video.tags", video.tags, typeof video.tags);
+                    videoMetaData.push({
+                        path: `Videos/${video.video_id}_${email}.mp4`,
+                        title: video.title,
+                        description:
+                            video.description + typeof video.tags === "string"
+                                ? video.tags.replaceAll(",", " #")
+                                : video.tags.join(" #"),
+                        thumbnail: "",
+                        language: "english",
+                        tags:
+                            typeof video.tags === "string"
+                                ? video.tags.replaceAll("#", "")
+                                : video.tags.join(", "),
+                        onSuccess: async () =>
+                            await onVideoUploadSuccess(
+                                video.video_id,
+                                email,
+                                messageTransport
+                            ),
+                        skipProcessingWait: true,
+                        onProgress: (progress) => {
+                            messageTransport.log(
+                                `progress: ${progress.progress}, stage: ${progress.stage}`
+                            );
+                        },
+                        uploadAsDraft: false,
+                        isAgeRestriction: false,
+                        isNotForKid: true,
+                    });
                 }
-                await fileDownloadWithoutAudio(
-                    videoURL,
-                    video.video_id,
-                    email,
-                    messageTransport
-                );
-                videoMetaData.push({
-                    path: `Videos/${video.video_id}_${email}.mp4`,
-                    title: video.title,
-                    description: video.description + video.tags,
-                    thumbnail: '',
-                    language: 'english',
-                    tags: video.tags,
-                    onSuccess: async () =>
-                        await onVideoUploadSuccess(
-                            video.video_id,
-                            email,
-                            messageTransport
-                        ),
-                    skipProcessingWait: true,
-                    onProgress: (progress) => {
-                        messageTransport.log(
-                            `progress: ${progress.progress}, stage: ${progress.stage}`
-                        );
-                    },
-                    uploadAsDraft: false,
-                    isAgeRestriction: false,
-                    isNotForKid: true,
-                });
             } catch (error) {
                 messageTransport.log(error.message || error);
                 console.log(error);
             }
         }
 
-        messageTransport.log('Closing downloader page');
+        messageTransport.log("Closing downloader page");
         await page.close();
 
         const credentials = {
             email,
             pass: channel.password,
-            recoveryemail: 'aamanpatidar110@gmail.com',
+            recoveryemail: "aamanpatidar110@gmail.com",
         };
         const resp = await upload(
             credentials,
@@ -217,11 +235,11 @@ router.get('/', async (req, res, next) => {
             messageTransport
         );
 
-        messageTransport.log('Uploading successfully! ' + resp);
-        res.status(200).json({ msg: 'Videos uploaded', resp });
+        messageTransport.log("Uploading successfully! " + resp);
+        res.status(200).json({ msg: "Videos uploaded", resp });
     } catch (e) {
         messageTransport.log(e);
-        messageTransport.log('Browser closed!');
+        messageTransport.log("Browser closed!");
         if (browser) {
             browser.close();
         }
