@@ -188,15 +188,15 @@ router.get("/", async (req, res, next) => {
                         path: `Videos/${video.video_id}_${email}.mp4`,
                         title: video.title,
                         description:
-                            video.description + typeof video.tags === "string"
+                            `${video.description} ${typeof video.tags == 'string'
                                 ? video.tags.replaceAll(",", " #")
-                                : video.tags.join(" #"),
+                                : video.tags.join(" #")}`,
                         thumbnail: "",
                         language: "english",
                         tags:
-                            typeof video.tags === "string"
+                            `${typeof video.tags == 'string'
                                 ? video.tags.replaceAll("#", "")
-                                : video.tags.join(", "),
+                                : video.tags.join(", ")}`,
                         onSuccess: async () =>
                             await onVideoUploadSuccess(
                                 video.video_id,

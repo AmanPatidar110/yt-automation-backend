@@ -15,6 +15,17 @@ export const runCron = () => {
         console.log(response.data);
     });
 
+    cron.schedule('30 * * * *', async () => {
+        console.log('Hitting /upload for:', 'hooomanfriend@gmail.com');
+
+        var config = {
+            method: 'get',
+            url: `http://localhost:4000/upload?email=hooomanfriend@gmail.com&forUser=ABHISHEK&targetUploadCount=${Math.floor(Math.random() * 6) + 1}`,
+        };
+
+        const response = await axios(config);
+        console.log(response.data);
+    });
     // cron.schedule('15 * * * *', async () => {
     //     console.log('Hitting /upload for:', 'amanpatidar110@gmail.com');
 
@@ -27,17 +38,6 @@ export const runCron = () => {
     //     console.log(response.data);
     // });
 
-    // cron.schedule('30 * * * *', async () => {
-    //     console.log('Hitting /upload for:', 'theurbandenizens@gmail.com');
-
-    //     var config = {
-    //         method: 'get',
-    //         url: 'http://localhost:4000/upload?email=theurbandenizens@gmail.com&forUser=AMAN&targetUploadCount=3',
-    //     };
-
-    //     const response = await axios(config);
-    //     console.log(response.data);
-    // });
 
     // cron.schedule('45 * * * *', async () => {
     //     console.log('Hitting /upload for:', 'aamanpatidar110@gmail.com');
