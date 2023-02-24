@@ -1,6 +1,6 @@
 import express from "express";
 import { db, realTimeDB } from "../firebase.js";
-import { getChannel } from "../Utility/firebaseUtilFunctions.js";
+import { addChannel, getChannel } from "../Utility/firebaseUtilFunctions.js";
 
 const router = express.Router();
 
@@ -12,17 +12,19 @@ router.post("/add_channel", async (req, res, next) => {
         const keywords = req.body.keywords;
         const channelName = req.body.name;
         const defaultUploadCount = req.body.defaultUploadCount;
+        const keywordCount = req.body.keywordCount;
+
 
         console.log("body", channelEmail, channelPassword, keywords);
-        const resp = await db.collection("channels").doc(channelEmail).set({
+        const resp =  await addChannel({
             forUser,
             name: channelName,
             email: channelEmail,
             password: channelPassword,
             defaultUploadCount,
             keywords,
-        });
-
+            KEYWORD_COUNT: keywordCount ||  Math.floor(Math.random() * keywords.length)
+        })
         const ref = realTimeDB.ref(forUser);
         ref.transaction(function (currentArray) {
             const emailEntry = channelEmail.replaceAll(".", "-");
@@ -35,8 +37,8 @@ router.post("/add_channel", async (req, res, next) => {
             return currentArray;
         });
 
-        console.log("channel added", resp);
-        res.status(200).json({ msg: "ok", resp });
+        console.log("channel added", resp.data);
+        res.status(200).json({ msg: "ok", data: resp.data });
     } catch (error) {
         if (!error.statusCode) error.statusCode = 500;
         console.log(error);

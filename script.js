@@ -14,7 +14,7 @@ app.use(express.json());
 global.api_count = 0;
 
 const server = http.createServer(app);
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8999;
 
 runCron();
 server.listen(PORT, () => {
