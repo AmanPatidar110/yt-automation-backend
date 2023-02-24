@@ -31,20 +31,6 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("20 * * * *", async () => {
-    console.log("Hitting /upload for:", "theurbandenizens@gmail.com");
-
-    var config = {
-      method: "get",
-      url: `http://localhost:8999/upload?email=theurbandenizens@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
-    };
-
-    const response = await axios(config);
-    console.log(response.data);
-  });
-
   cron.schedule("30 * * * *", async () => {
     console.log("Hitting /upload for:", "aamanpatidar110@gmail.com");
 
