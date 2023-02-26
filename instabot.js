@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
-import { getChannel, updateVideos } from './Utility/firebaseUtilFunctions.js';
-import createPage, { getBrowser } from './Utility/getPage.js';
+import { getChannel, updateVideos } from "./Utility/firebaseUtilFunctions.js";
+import createPage, { getBrowser } from "./Utility/getPage.js";
 
 /** To get the proxy run below code
 
@@ -23,159 +23,143 @@ console.log(error)
 **/
 
 export const crawl = async (
-    threadIds,
-    userName,
-    password,
-    forChannelEmail,
-    forUser,
-    messageTransport
+  threadIds,
+  userName,
+  password,
+  forChannelEmail,
+  forUser,
+  messageTransport
 ) => {
-    let FETCH_COUNT = 0;
-    let browser;
-    try {
-        const channelResponse = await getChannel(
-            forChannelEmail,
-            messageTransport
-        );
-        const channel = channelResponse.data.channel;
+  let FETCH_COUNT = 0;
+  let browser;
+  try {
+    const channelResponse = await getChannel(forChannelEmail, messageTransport);
+    const channel = channelResponse.data.channel;
 
-        browser = await getBrowser();
-        const page = await createPage(browser);
+    browser = await getBrowser();
+    const page = await createPage(browser);
 
-        await page.setRequestInterception(true);
-        page.on('request', async (interceptedRequest) => {
-            if (interceptedRequest.isInterceptResolutionHandled()) return;
-            if (interceptedRequest.url().includes('png')) {
-                interceptedRequest.abort();
-                return;
-            }
+    await page.setRequestInterception(true);
+    page.on("request", async (interceptedRequest) => {
+      if (interceptedRequest.isInterceptResolutionHandled()) return;
+      if (interceptedRequest.url().includes("png")) {
+        interceptedRequest.abort();
+        return;
+      }
 
-            if (
-                interceptedRequest
-                    .url()
-                    .includes(
-                        'https://www.instagram.com/api/v1/direct_v2/inbox/?persistentBadging=true'
-                    )
-            ) {
-                messageTransport.log(interceptedRequest.url());
-                const videos = [];
-                for (const threadId of threadIds) {
-                    messageTransport.log('Fetching thread: ' + threadId);
+      if (
+        interceptedRequest
+          .url()
+          .includes(
+            "https://www.instagram.com/api/v1/direct_v2/inbox/?persistentBadging=true"
+          )
+      ) {
+        messageTransport.log(interceptedRequest.url());
+        const videos = [];
+        for (const threadId of threadIds) {
+          messageTransport.log("Fetching thread: " + threadId);
 
-                    let cursor = '';
-                    const videosToFetch = 120;
+          let cursor = "";
+          const videosToFetch = 200;
 
-                    for (
-                        let index = 0;
-                        index < Math.ceil(videosToFetch / 20);
-                        index++
-                    ) {
-                        const response = await axios.request({
-                            method: 'GET',
-                            url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/${
-                                cursor ? `?cursor=${cursor}` : ''
-                            }`,
-                            headers: interceptedRequest.headers(),
-                        });
-                        const threadVideos = mapVideos(
-                            response.data?.thread?.items
-                        );
+          for (let index = 0; index < Math.ceil(videosToFetch / 20); index++) {
+            const response = await axios.request({
+              method: "GET",
+              url: `https://www.instagram.com/api/v1/direct_v2/threads/${threadId}/${
+                cursor ? `?cursor=${cursor}` : ""
+              }`,
+              headers: interceptedRequest.headers(),
+            });
+            const threadVideos = mapVideos(response.data?.thread?.items);
 
-                        cursor = response.data?.thread?.next_cursor;
-                        videos.push([...threadVideos]);
-                    }
-                }
-                messageTransport.log(
-                    `Fetched videos count: ${videos.flat().length}`
-                );
-                messageTransport.log('Uploading videos on firbase.');
-
-                const uploadResponse = await updateVideos(
-                    videos.flat(),
-                    forChannelEmail,
-                    '',
-                    'INSTAGRAM',
-                    channel?.keywords,
-                    forUser,
-                    FETCH_COUNT,
-                    messageTransport
-                );
-
-                FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
-                messageTransport.log(uploadResponse.data.msg);
-                messageTransport.log('Closing browser');
-                if (browser) {
-                    await browser.close();
-                }
-            }
-
-            if (interceptedRequest.isInterceptResolutionHandled()) return;
-            interceptedRequest.continue();
-        });
-        await page.goto('https://www.instagram.com/accounts/login', {
-            waitUntil: 'networkidle2',
-        });
-
-        await page.waitForXPath(
-            '//*[@id="loginForm"]/div/div[1]/div/label/input'
-        );
-
-        await page.type(
-            '#loginForm > div > div:nth-child(1) > div > label > input',
-            userName
-        );
-
-        await page.type(
-            '#loginForm > div > div:nth-child(2) > div > label > input',
-            password
-        );
-        await page.waitForTimeout(2000);
-        const allResultsSelector =
-            '#loginForm > div > div:nth-child(3) > button > div';
-        await page.waitForSelector(allResultsSelector);
-
-        await Promise.all([
-            await page.click(allResultsSelector),
-            await page.waitForNavigation({ waitUntil: 'networkidle2' }),
-        ]);
-        await page.waitForTimeout(4000);
-        const linkHandlers = await page.$x(
-            "//button[contains(text(), 'Not Now')]"
-        );
-
-        if (linkHandlers.length > 0) {
-            await linkHandlers[0].click();
-        } else {
-            messageTransport.log('Link not found');
+            cursor = response.data?.thread?.next_cursor;
+            videos.push([...threadVideos]);
+          }
         }
-        messageTransport.log('Goto: INBOX!');
-        await page.goto('https://www.instagram.com/direct/inbox/', {
-            waitUntil: 'networkidle2',
-        });
-        return FETCH_COUNT;
-    } catch (error) {
+        messageTransport.log(`Fetched videos count: ${videos.flat().length}`);
+        messageTransport.log("Uploading videos on firbase.");
+
+        const uploadResponse = await updateVideos(
+          videos.flat(),
+          forChannelEmail,
+          "",
+          "INSTAGRAM",
+          channel?.keywords,
+          forUser,
+          FETCH_COUNT,
+          messageTransport
+        );
+
+        FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
+        messageTransport.log(uploadResponse.data.msg);
+        messageTransport.log("Closing browser");
         if (browser) {
-            browser.close();
+          await browser.close();
         }
-        messageTransport.log(error.message || error);
-        console.log(error);
+      }
+
+      if (interceptedRequest.isInterceptResolutionHandled()) return;
+      interceptedRequest.continue();
+    });
+    await page.goto("https://www.instagram.com/accounts/login", {
+      waitUntil: "networkidle2",
+    });
+
+    await page.waitForXPath('//*[@id="loginForm"]/div/div[1]/div/label/input');
+
+    await page.type(
+      "#loginForm > div > div:nth-child(1) > div > label > input",
+      userName
+    );
+
+    await page.type(
+      "#loginForm > div > div:nth-child(2) > div > label > input",
+      password
+    );
+    await page.waitForTimeout(2000);
+    const allResultsSelector =
+      "#loginForm > div > div:nth-child(3) > button > div";
+    await page.waitForSelector(allResultsSelector);
+
+    await Promise.all([
+      await page.click(allResultsSelector),
+      await page.waitForNavigation({ waitUntil: "networkidle2" }),
+    ]);
+    await page.waitForTimeout(4000);
+    const linkHandlers = await page.$x("//button[contains(text(), 'Not Now')]");
+
+    if (linkHandlers.length > 0) {
+      await linkHandlers[0].click();
+    } else {
+      messageTransport.log("Link not found");
     }
+    messageTransport.log("Goto: INBOX!");
+    await page.goto("https://www.instagram.com/direct/inbox/", {
+      waitUntil: "networkidle2",
+    });
+    return FETCH_COUNT;
+  } catch (error) {
+    if (browser) {
+      browser.close();
+    }
+    messageTransport.log(error.message || error);
+    console.log(error);
+  }
 };
 
 const mapVideos = (incomingVideoItems) => {
-    const threadVideos = incomingVideoItems
-        ?.filter((each) => ['clip', 'media_share'].includes(each.item_type))
-        .map((item) => ({
-            video_id: item?.clip?.clip?.code || item?.media_share?.code,
-            title:
-                item?.clip?.clip?.caption?.text ||
-                item?.media_share?.caption?.text ||
-                'Youtube shorts',
-            author: {
-                unique_id:
-                    item?.media_share?.user?.username || 'instagram_user',
-            },
-        }));
+  const threadVideos = incomingVideoItems
+    ?.filter((each) => ["clip", "media_share"].includes(each.item_type))
+    .map((item) => ({
+      video_id: item?.clip?.clip?.code || item?.media_share?.code,
+      title:
+        item?.clip?.clip?.caption?.text ||
+        item?.media_share?.caption?.text ||
+        "Youtube shorts",
+      author: {
+        unique_id: item?.media_share?.user?.username || "instagram_user",
+      },
+    }));
 
-    return threadVideos;
+  return threadVideos;
 };

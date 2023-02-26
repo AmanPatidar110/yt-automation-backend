@@ -91,7 +91,7 @@ export const updateVideos = async (
             forUser,
             keyword,
             title: video.title.substr(0, 75),
-            description: `${video.title}
+            description: `
 Video credit goes to: @${video.author.unique_id} (${source}) 
 For removal request please refer this email: ${forEmail}
 `,

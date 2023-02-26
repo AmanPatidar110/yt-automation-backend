@@ -73,23 +73,43 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  // cron.schedule('0 1,17 * * *', async () => {
-  //     console.log(
-  //         'Hitting /fetch_insta_messages for:',
-  //         'aamanpatidar110@gmail.com'
-  //     );
+  cron.schedule("0 1,17 * * *", async () => {
+    console.log(
+      "Hitting /fetch_insta_messages for:",
+      "amanpatidar110@gmail.com"
+    );
 
-  //     var config = {
-  //         method: 'POST',
-  //         url: `http://localhost:8999/insta/fetch_messages_from_insta',
-  //         data: {
-  //             forUser: 'AMAN',
-  //             instaCredId: 'aamanpatidar110@gmail.com',
-  //             forChannelEmail: 'amanpatidar110@gmail.com',
-  //         },
-  //     };
+    var config = {
+      method: "POST",
+      url: `http://localhost:8999/insta/fetch_messages_from_insta`,
+      data: {
+        forUser: "AMAN",
+        instaCredId: "aamanpatidar110@gmail.com",
+        forChannelEmail: "amanpatidar110@gmail.com",
+      },
+    };
 
-  //     const response = await axios(config);
-  //     console.log(response.data);
-  // });
+    const response = await axios(config);
+    console.log(response.data);
+  });
+
+  cron.schedule("0 18 * * *", async () => {
+    console.log(
+      "Hitting /fetch_insta_messages for:",
+      "aamanpatidar110@gmail.com"
+    );
+
+    var config = {
+      method: "POST",
+      url: `http://localhost:8999/insta/fetch_messages_from_insta`,
+      data: {
+        forUser: "AMAN",
+        instaCredId: "super_machines_0",
+        forChannelEmail: "aamanpatidar110@gmail.com",
+      },
+    };
+
+    const response = await axios(config);
+    console.log(response.data);
+  });
 };
