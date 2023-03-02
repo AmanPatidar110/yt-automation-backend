@@ -1,9 +1,10 @@
 import axios from "axios";
 import { apiKey } from "../Constants/keys.js";
+import { db } from "../firebase.js";
 import { updateVideos } from "../Utility/firebaseUtilFunctions.js";
 
-const getApiKey = (FETCH_COUNT) => {
-  return apiKey[FETCH_COUNT % 10];
+const getApiKey = (API_COUNT) => {
+  return apiKey[API_COUNT % 12];
 };
 
 export const fetchKeywordVideos = async (
@@ -11,9 +12,10 @@ export const fetchKeywordVideos = async (
   keywords,
   forUser,
   messageTransport,
-  KEYWORD_COUNT = Math.floor(Math.random() * keywords.length)
+  KEYWORD_COUNT = Math.floor(Math.random() * keywords.length),
+  descriptionKeywords = []
 ) => {
-  const keyword = keywords[KEYWORD_COUNT];
+  const keyword = keywords[KEYWORD_COUNT % (keywords.length || 1)];
 
   let FETCH_COUNT = 0;
   let hasNext = true;
@@ -29,7 +31,13 @@ export const fetchKeywordVideos = async (
       headers: getApiKey(global.api_count),
     };
     while (FETCH_COUNT < 10 && hasNext) {
-      const response = await axios.request(options);
+      let response;
+      try {
+        response = await axios.request(options);
+      } catch (error) {
+        global.api_count += 1;
+        break;
+      }
 
       hasNext = response.data.data.hasMore;
       cursor = response.data.data.cursor;
@@ -47,22 +55,27 @@ export const fetchKeywordVideos = async (
         keywords,
         forUser,
         FETCH_COUNT,
-        messageTransport
+        messageTransport,
+        descriptionKeywords
       );
 
       messageTransport.log(uploadResponse.data.msg);
       FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
       global.api_count += 1;
     }
+    messageTransport.log(
+      "Updating channel keyword count, current count: " + KEYWORD_COUNT
+    );
+
     await db
       .collection("channels")
-      .doc(channel?.email)
+      .doc(forEmail)
       .update({
         KEYWORD_COUNT: KEYWORD_COUNT + 1,
       });
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500;
-
+    global.api_count += 1;
     messageTransport.log(error.message || error);
     console.log(error);
     throw error;

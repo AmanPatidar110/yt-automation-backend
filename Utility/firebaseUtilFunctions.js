@@ -75,7 +75,8 @@ export const updateVideos = async (
   channelKeywords,
   forUser,
   FETCH_COUNT,
-  messageTransport = console
+  messageTransport = console,
+  descriptionKeywords
 ) => {
   try {
     videos.forEach(async (video) => {
@@ -95,7 +96,11 @@ export const updateVideos = async (
 Video credit goes to: @${video.author.unique_id} (${source}) 
 For removal request please refer this email: ${forEmail}
 `,
-            tags: [...video.title.split("#"), "short", "shorts"],
+            tags: [
+              ...video.title.split("#"),
+              ...channelKeywords,
+              ...descriptionKeywords,
+            ],
             uploaded: false,
             source,
           });

@@ -76,28 +76,26 @@ router.get("/", async (req, res, next) => {
           channel?.keywords,
           forUser,
           messageTransport,
-          channel?.KEYWORD_COUNT
+          channel?.KEYWORD_COUNT,
+          channel?.descriptionKeywords
         );
       } catch (error) {
         messageTransport.log(
           "Error: Fetching video count, increasing api_count: ",
           error
         );
-
+        messageTransport.log("apiKey.length: ", apiKey.length);
+        messageTransport.log("Current Api_Count ", global.api_count);
         global.api_count += 1;
-        INCREASE_COUNT_AFTER_FAILING += 1;
-        if (INCREASE_COUNT_AFTER_FAILING > apiKey.length) {
-          messageTransport.log("Error: All RAPID APIs are failing");
-          messageTransport.log(
-            "INCREASE_COUNT_AFTER_FAILING",
-            INCREASE_COUNT_AFTER_FAILING
-          );
-          messageTransport.log("apiKey.length: ", apiKey.length);
-          return;
-        }
+        return;
       }
       availableCount = await getVideoCount(forUser, email, messageTransport);
       messageTransport.log("availableCount -> after fetch:" + availableCount);
+
+      if (availableCount < targetUploadCount) {
+        messageTransport.log("availableCount < targetUploadCount");
+        return;
+      }
     }
 
     messageTransport.log("Fetching videos from firebase");
@@ -158,7 +156,13 @@ router.get("/", async (req, res, next) => {
           videoMetaData.push({
             path: `Videos/${video.video_id}_${email}.mp4`,
             title: video.title,
-            description: video.description,
+            description: `
+${video.title.split("#")[0]}
+
+Tags:
+${channel.descriptionKeywords.join(" ")}
+${video.description}
+`,
             thumbnail: "",
             language: "english",
             tags:

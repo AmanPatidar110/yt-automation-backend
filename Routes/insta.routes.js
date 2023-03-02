@@ -24,9 +24,9 @@ router.post("/fetch_messages_from_insta", async (req, res, next) => {
     const instaResponse = await getInstaAccount(instaCredId, messageTransport);
     const instaAccount = instaResponse?.data?.instaAccount;
     const FETCH_COUNT = await crawl(
-      instaAccount.threadIds,
+      instaAccount?.threadIds || [],
       instaCredId,
-      instaAccount.credPassword,
+      instaAccount?.credPassword,
       forChannelEmail,
       forUser,
       messageTransport
