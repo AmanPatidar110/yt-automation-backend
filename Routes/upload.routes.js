@@ -160,7 +160,9 @@ router.get("/", async (req, res, next) => {
 ${video.title.split("#")[0]}
 
 Tags:
-${channel.descriptionKeywords.join(" ")}
+${channel.descriptionKeywords
+  .filter((each) => each.includes(video.keyword))
+  .join(" ")}
 ${video.description}
 `,
             thumbnail: "",
