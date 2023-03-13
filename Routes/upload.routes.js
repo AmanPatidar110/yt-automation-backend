@@ -59,20 +59,24 @@ router.get("/", async (req, res, next) => {
 
     const channelResponse = await getChannel(email, messageTransport);
     const channel = channelResponse.data.channel;
-
+    const selectedChannelKeyword =
+      channel?.keywords[
+        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
+      ];
     messageTransport.log("Fetching video count");
 
     let availableCount = await getVideoCount(
       forUser,
       email,
-      channel?.keywords[
-        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
-      ]
+      selectedChannelKeyword
     );
     messageTransport.log(email, "availableCount -> before: " + availableCount);
     increaseChannelKeywordCount(channel?.KEYWORD_COUNT, channel?.email);
 
-    if (availableCount < targetUploadCount) {
+    if (
+      availableCount < targetUploadCount &&
+      selectedChannelKeyword !== "INSTAGRAM"
+    ) {
       try {
         messageTransport.log(
           email,
@@ -99,9 +103,7 @@ router.get("/", async (req, res, next) => {
       availableCount = await getVideoCount(
         forUser,
         email,
-        channel?.keywords[
-          channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
-        ]
+        selectedChannelKeyword
       );
       messageTransport.log("availableCount -> after fetch:" + availableCount);
 
@@ -116,9 +118,7 @@ router.get("/", async (req, res, next) => {
       forUser,
       email,
       targetUploadCount,
-      channel?.keywords[
-        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
-      ]
+      selectedChannelKeyword
     );
     const videos = videoResponse.data.videos;
 

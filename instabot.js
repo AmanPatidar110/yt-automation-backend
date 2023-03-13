@@ -159,6 +159,7 @@ const mapVideos = (incomingVideoItems) => {
       author: {
         unique_id: item?.media_share?.user?.username || "instagram_user",
       },
+      keyword: "INSTAGRAM",
     }));
 
   return threadVideos;
