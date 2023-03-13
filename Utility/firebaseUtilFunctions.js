@@ -1,12 +1,13 @@
 import { db } from "../firebase.js";
 
-export const getVideoCount = async (forUser, email) => {
+export const getVideoCount = async (forUser, email, keyword) => {
   try {
     const videosRef = db.collection("videos");
     const query = videosRef
       .where("forEmail", "==", email)
       .where("forUser", "==", forUser)
-      .where("uploaded", "==", false);
+      .where("uploaded", "==", false)
+      .where("keyword", "==", keyword);
 
     const availableCount = (await query.count().get()).data().count;
     return availableCount;
@@ -15,13 +16,15 @@ export const getVideoCount = async (forUser, email) => {
     console.log(error);
   }
 };
-export const getVideos = async (forUser, email, limit) => {
+export const getVideos = async (forUser, email, limit, keyword) => {
+  console.log("KEYWORD...............", keyword);
   try {
     const videosRef = db.collection("videos");
     const query = videosRef
       .where("forEmail", "==", email)
       .where("forUser", "==", forUser)
-      .where("uploaded", "==", false);
+      .where("uploaded", "==", false)
+      .where("keyword", "==", keyword);
 
     const snapshot2 = await query.limit(parseInt(limit)).get();
     if (snapshot2.empty) {
@@ -67,6 +70,20 @@ export const updateVideo = async (video, videoId) => {
     console.log(error);
   }
 };
+export const increaseChannelKeywordCount = async (KEYWORD_COUNT, forEmail) => {
+  try {
+    await db
+      .collection("channels")
+      .doc(forEmail)
+      .update({
+        KEYWORD_COUNT: KEYWORD_COUNT + 1,
+      });
+    return { data: { msg: "Channel keyword count updated." }, status: 200 };
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500;
+    console.log(error);
+  }
+};
 export const updateVideos = async (
   videos,
   forEmail,
@@ -75,8 +92,7 @@ export const updateVideos = async (
   channelKeywords,
   forUser,
   FETCH_COUNT,
-  messageTransport = console,
-  descriptionKeywords
+  messageTransport = console
 ) => {
   try {
     videos.forEach(async (video) => {
@@ -96,11 +112,7 @@ export const updateVideos = async (
 Video credit goes to: @${video.author.unique_id} (${source}) 
 For removal request please refer this email: ${forEmail}
 `,
-            tags: [
-              ...video.title.split("#"),
-              ...channelKeywords,
-              ...descriptionKeywords,
-            ],
+            tags: [...video.title.split("#")],
             uploaded: false,
             source,
           });

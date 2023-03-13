@@ -7,7 +7,7 @@ import createPage, { getBrowser } from "./Utility/getPage.js";
 
 var config = {
   method: 'get',
-  url: 'http://falcon.proxyrotator.com:51337/?apiKey=HNSQzPLsERg7oFbrvM2XuaG4C6DB9Vfk',
+  url: 'http://falcon.proxyrotator.com:51337/?apiKeys=HNSQzPLsERg7oFbrvM2XuaG4C6DB9Vfk',
   headers: { }
 };
 

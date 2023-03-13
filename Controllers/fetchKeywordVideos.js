@@ -1,10 +1,15 @@
 import axios from "axios";
-import { apiKey } from "../Constants/keys.js";
+import { apiKeys } from "../Constants/keys.js";
 import { db } from "../firebase.js";
-import { updateVideos } from "../Utility/firebaseUtilFunctions.js";
+import {
+  increaseChannelKeywordCount,
+  updateVideos,
+} from "../Utility/firebaseUtilFunctions.js";
 
 const getApiKey = (API_COUNT) => {
-  return apiKey[API_COUNT % 12];
+  const apiKey = apiKeys[API_COUNT % 12];
+  console.log("API KEY...", apiKey);
+  return apiKey;
 };
 
 export const fetchKeywordVideos = async (
@@ -12,8 +17,7 @@ export const fetchKeywordVideos = async (
   keywords,
   forUser,
   messageTransport,
-  KEYWORD_COUNT = Math.floor(Math.random() * keywords.length),
-  descriptionKeywords = []
+  KEYWORD_COUNT = Math.floor(Math.random() * keywords.length)
 ) => {
   const keyword = keywords[KEYWORD_COUNT % (keywords.length || 1)];
 
@@ -30,17 +34,19 @@ export const fetchKeywordVideos = async (
       params: { keywords: keyword, count: "30", cursor },
       headers: getApiKey(global.api_count),
     };
-    while (FETCH_COUNT < 10 && hasNext) {
+    while (FETCH_COUNT < 2 && hasNext) {
       let response;
       try {
         response = await axios.request(options);
+        if (!response)
+          throw new Error(response?.data?.msg || "No response from the API!");
       } catch (error) {
         global.api_count += 1;
         break;
       }
 
-      hasNext = response.data.data.hasMore;
-      cursor = response.data.data.cursor;
+      hasNext = response.data?.data?.hasMore;
+      cursor = response.data?.data?.cursor;
       options = {
         ...options,
         params: { ...options.params, cursor },
@@ -55,24 +61,19 @@ export const fetchKeywordVideos = async (
         keywords,
         forUser,
         FETCH_COUNT,
-        messageTransport,
-        descriptionKeywords
+        messageTransport
       );
 
       messageTransport.log(uploadResponse.data.msg);
       FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
+      console.log("FETCH COUNT..........", FETCH_COUNT);
       global.api_count += 1;
     }
     messageTransport.log(
       "Updating channel keyword count, current count: " + KEYWORD_COUNT
     );
 
-    await db
-      .collection("channels")
-      .doc(forEmail)
-      .update({
-        KEYWORD_COUNT: KEYWORD_COUNT + 1,
-      });
+    increaseChannelKeywordCount(KEYWORD_COUNT, forEmail);
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500;
     global.api_count += 1;

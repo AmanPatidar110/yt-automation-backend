@@ -40,9 +40,10 @@ import {
   getChannel,
   getVideoCount,
   getVideos,
+  increaseChannelKeywordCount,
   updateVideo,
 } from "../Utility/firebaseUtilFunctions.js";
-import { apiKey } from "../Constants/keys.js";
+import { apiKeys } from "../Constants/keys.js";
 
 const router = express.Router();
 
@@ -61,9 +62,15 @@ router.get("/", async (req, res, next) => {
 
     messageTransport.log("Fetching video count");
 
-    let availableCount = await getVideoCount(forUser, email, messageTransport);
+    let availableCount = await getVideoCount(
+      forUser,
+      email,
+      channel?.keywords[
+        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
+      ]
+    );
     messageTransport.log(email, "availableCount -> before: " + availableCount);
-    let INCREASE_COUNT_AFTER_FAILING = 0;
+    increaseChannelKeywordCount(channel?.KEYWORD_COUNT, channel?.email);
 
     if (availableCount < targetUploadCount) {
       try {
@@ -84,12 +91,18 @@ router.get("/", async (req, res, next) => {
           "Error: Fetching video count, increasing api_count: ",
           error
         );
-        messageTransport.log("apiKey.length: ", apiKey.length);
+        messageTransport.log("apiKeys.length: ", apiKeys.length);
         messageTransport.log("Current Api_Count ", global.api_count);
         global.api_count += 1;
         return;
       }
-      availableCount = await getVideoCount(forUser, email, messageTransport);
+      availableCount = await getVideoCount(
+        forUser,
+        email,
+        channel?.keywords[
+          channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
+        ]
+      );
       messageTransport.log("availableCount -> after fetch:" + availableCount);
 
       if (availableCount < targetUploadCount) {
@@ -103,11 +116,14 @@ router.get("/", async (req, res, next) => {
       forUser,
       email,
       targetUploadCount,
-      messageTransport
+      channel?.keywords[
+        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
+      ]
     );
     const videos = videoResponse.data.videos;
 
     messageTransport.log("Fetched videos from firestore: " + videos?.length);
+
     const videoMetaData = [];
 
     messageTransport.log("Launching browser");
@@ -152,17 +168,24 @@ router.get("/", async (req, res, next) => {
             email,
             messageTransport
           );
-          console.log("video.tags", video.tags, typeof video.tags);
+
+          const keywordSplitArray = video.keyword.split(" ");
+          const filteredDescriptionKeywords =
+            channel.descriptionKeywords.filter((each) =>
+              keywordSplitArray.some(
+                (substring) =>
+                  substring !== "fashion" && each.includes(substring)
+              )
+            );
           videoMetaData.push({
+            video_id: video.video_id,
             path: `Videos/${video.video_id}_${email}.mp4`,
             title: video.title,
             description: `
 ${video.title.split("#")[0]}
 
 Tags:
-${channel.descriptionKeywords
-  .filter((each) => each.includes(video.keyword))
-  .join(" ")}
+${filteredDescriptionKeywords.join(" ")}
 ${video.description}
 `,
             thumbnail: "",
@@ -171,12 +194,6 @@ ${video.description}
               typeof video.tags === "string"
                 ? video.tags.replaceAll("#", "")
                 : video.tags.join(", "),
-            onSuccess: async () =>
-              await onVideoUploadSuccess(
-                video.video_id,
-                email,
-                messageTransport
-              ),
             skipProcessingWait: true,
             onProgress: (progress) => {
               messageTransport.log(
@@ -221,7 +238,11 @@ ${video.description}
   }
 });
 
-const onVideoUploadSuccess = async (videoId, email, messageTransport) => {
+export const onVideoUploadSuccess = async (
+  videoId,
+  email,
+  messageTransport
+) => {
   try {
     const video = {
       uploaded: true,

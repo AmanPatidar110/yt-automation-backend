@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { onVideoUploadSuccess } from "../../Routes/upload.routes.js";
 import createPage from "../getPage.js";
 StealthPlugin().enabledEvasions.delete("iframe.contentWindow");
 StealthPlugin().enabledEvasions.delete("navigator.plugins");
@@ -56,6 +57,9 @@ export const upload = async (
   for (const video of videos) {
     try {
       link = await uploadVideo(video, email, messageTransport);
+      await onVideoUploadSuccess(video.video_id, email, messageTransport);
+
+      uploadedYTLink.push(link);
     } catch (error) {
       messageTransport.log(error.message || error);
       console.log(error);
@@ -65,13 +69,6 @@ export const upload = async (
         break;
       }
     }
-
-    const { onSuccess } = video;
-    if (typeof onSuccess === "function") {
-      onSuccess(link);
-    }
-
-    uploadedYTLink.push(link);
   }
 
   await browsers[email].close();
@@ -802,7 +799,7 @@ async function login(localPage, credentials, messageTransport) {
     messageTransport.log(error.message || error);
     console.log(error);
     if (credentials.recoveryemail) {
-      await securityBypass(newP, credentials.recoveryemail, email);
+      await securityBypass(newP, credentials.recoveryemail, messageTransport);
     }
   }
   const cookiesObject = await localPage.cookies();
