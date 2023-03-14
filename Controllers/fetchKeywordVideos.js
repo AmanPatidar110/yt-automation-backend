@@ -39,7 +39,6 @@ export const fetchKeywordVideos = async (
       let response;
       try {
         response = await axios.request(options);
-        console.log("tit tok api response", response?.data?.data);
         if (!response)
           throw new Error(response?.data?.msg || "No response from the API!");
       } catch (error) {
@@ -68,12 +67,11 @@ export const fetchKeywordVideos = async (
         "TIKTOK",
         keywords,
         forUser,
-        FETCH_COUNT,
         messageTransport
       );
 
       messageTransport.log(uploadResponse.data.msg);
-      FETCH_COUNT = uploadResponse.data.FETCH_COUNT;
+      FETCH_COUNT += uploadResponse.data.count;
       console.log("FETCH COUNT..........", FETCH_COUNT);
       global.api_count += 1;
     }

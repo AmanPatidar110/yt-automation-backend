@@ -91,16 +91,19 @@ export const updateVideos = async (
   source,
   channelKeywords,
   forUser,
-  FETCH_COUNT,
   messageTransport = console
 ) => {
-  let newFetchCount = FETCH_COUNT;
+  let newFetchCount = 0;
   try {
-    videos.forEach(async (video) => {
+    await videos.forEach(async (video) => {
       const vidRef = db.collection("videos").doc(video.video_id);
       const vid = await vidRef.get();
       if (!vid.exists) {
         messageTransport.log(`Adding document...${newFetchCount}`);
+        console.log("newFetchCount0", newFetchCount);
+        newFetchCount += 1;
+        console.log("newFetchCount1 ||", newFetchCount);
+        console.log(" ");
 
         await db
           .collection("videos")
@@ -119,14 +122,12 @@ For removal request please refer this email: ${forEmail}
             uploaded: false,
             source,
           });
-
-        newFetchCount += 1;
       } else {
         messageTransport.log("Document already exists!");
       }
     });
     return {
-      data: { msg: "Videos uploaded.", FETCH_COUNT: newFetchCount },
+      data: { msg: "Videos uploaded.", count: newFetchCount },
       status: 200,
     };
   } catch (error) {

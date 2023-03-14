@@ -3,7 +3,7 @@ import cron from "node-cron";
 
 export const runCron = () => {
   console.log("Scheduling crons");
-  cron.schedule("2 0 0,2,4,6,8,10,16,18,19,20,21,22,23 * * * *", async () => {
+  cron.schedule("2 0 1,3,5,11,13,12,15,16,17,18,19,21,23 * * * *", async () => {
     console.log("Hitting /upload for:", "urbanlibaaz@gmail.com");
 
     var config = {
@@ -15,53 +15,65 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("2 12 0,2,4,6,8,10,16,18,19,20,21,22,23 * * * *", async () => {
-    console.log("Hitting /upload for:", "amanpatidar110@gmail.com");
+  cron.schedule(
+    "2 12 1,3,5,11,13,12,15,16,17,18,19,21,23 * * * *",
+    async () => {
+      console.log("Hitting /upload for:", "amanpatidar110@gmail.com");
 
-    var config = {
-      method: "get",
-      url: `http://localhost:8999/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
-    };
+      var config = {
+        method: "get",
+        url: `http://localhost:8999/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
+      };
 
-    const response = await axios(config);
-    console.log(response.data);
-  });
+      const response = await axios(config);
+      console.log(response.data);
+    }
+  );
 
-  cron.schedule("2 24 0,2,4,6,8,10,16,18,19,20,21,22,23 * * * *", async () => {
-    console.log("Hitting /upload for:", "aamanpatidar110@gmail.com");
+  cron.schedule(
+    "2 24 1,3,5,11,13,12,15,16,17,18,19,21,23 * * * *",
+    async () => {
+      console.log("Hitting /upload for:", "aamanpatidar110@gmail.com");
 
-    var config = {
-      method: "get",
-      url: `http://localhost:8999/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
-    };
+      var config = {
+        method: "get",
+        url: `http://localhost:8999/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
+      };
 
-    const response = await axios(config);
-    console.log(response.data);
-  });
+      const response = await axios(config);
+      console.log(response.data);
+    }
+  );
 
-  cron.schedule("2 36 0,2,4,6,8,10,16,18,19,20,21,22,23 * * * *", async () => {
-    console.log("Hitting /upload for:", "Shubhamsa466@gmail.com");
+  cron.schedule(
+    "2 36 1,3,5,11,13,12,15,16,17,18,19,21,23 * * * *",
+    async () => {
+      console.log("Hitting /upload for:", "Shubhamsa466@gmail.com");
 
-    var config = {
-      method: "get",
-      url: `http://localhost:8999/upload?email=Shubhamsa466@gmail.com&forUser=AMAN&targetUploadCount=1`,
-    };
+      var config = {
+        method: "get",
+        url: `http://localhost:8999/upload?email=Shubhamsa466@gmail.com&forUser=AMAN&targetUploadCount=1`,
+      };
 
-    const response = await axios(config);
-    console.log(response.data);
-  });
+      const response = await axios(config);
+      console.log(response.data);
+    }
+  );
 
-  cron.schedule("2 48 0,2,4,6,8,10,16,18,19,20,21,22,23 * * * *", async () => {
-    console.log("Hitting /upload for:", "akkupati0330@gmail.com");
+  cron.schedule(
+    "8 48 1,3,5,11,13,12,15,16,17,18,19,21,23 * * * *",
+    async () => {
+      console.log("Hitting /upload for:", "akkupati0330@gmail.com");
 
-    var config = {
-      method: "get",
-      url: `http://localhost:8999/upload?email=akkupati0330@gmail.com&forUser=AMAN&targetUploadCount=1`,
-    };
+      var config = {
+        method: "get",
+        url: `http://localhost:8999/upload?email=akkupati0330@gmail.com&forUser=AMAN&targetUploadCount=1`,
+      };
 
-    const response = await axios(config);
-    console.log(response.data);
-  });
+      const response = await axios(config);
+      console.log(response.data);
+    }
+  );
 
   cron.schedule("0 1,17 * * *", async () => {
     console.log(
