@@ -28,13 +28,14 @@ export const fetchKeywordVideos = async (
   try {
     messageTransport.log("api_count: " + global.api_count);
     messageTransport.log("Fetching videos for #" + keyword);
-    let options = {
-      method: "GET",
-      url: "https://tiktok-video-no-watermark2.p.rapidapi.com/feed/search",
-      params: { keywords: keyword, count: "30", cursor },
-      headers: getApiKey(global.api_count),
-    };
+
     while (FETCH_COUNT < 2 && hasNext) {
+      let options = {
+        method: "GET",
+        url: "https://tiktok-video-no-watermark2.p.rapidapi.com/feed/search",
+        params: { keywords: keyword, count: "30", cursor },
+        headers: getApiKey(global.api_count),
+      };
       let response;
       try {
         response = await axios.request(options);
