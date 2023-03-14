@@ -8,9 +8,7 @@ export const runCron = () => {
 
     var config = {
       method: "get",
-      url: `http://localhost:8999/upload?email=urbanlibaaz@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
+      url: `http://localhost:8999/upload?email=urbanlibaaz@gmail.com&forUser=AMAN&targetUploadCount=1`,
     };
 
     const response = await axios(config);
@@ -22,9 +20,7 @@ export const runCron = () => {
 
     var config = {
       method: "get",
-      url: `http://localhost:8999/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
+      url: `http://localhost:8999/upload?email=amanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
     };
 
     const response = await axios(config);
@@ -36,9 +32,7 @@ export const runCron = () => {
 
     var config = {
       method: "get",
-      url: `http://localhost:8999/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
+      url: `http://localhost:8999/upload?email=aamanpatidar110@gmail.com&forUser=AMAN&targetUploadCount=1`,
     };
 
     const response = await axios(config);
@@ -50,9 +44,7 @@ export const runCron = () => {
 
     var config = {
       method: "get",
-      url: `http://localhost:8999/upload?email=Shubhamsa466@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
+      url: `http://localhost:8999/upload?email=Shubhamsa466@gmail.com&forUser=AMAN&targetUploadCount=1`,
     };
 
     const response = await axios(config);
@@ -64,9 +56,7 @@ export const runCron = () => {
 
     var config = {
       method: "get",
-      url: `http://localhost:8999/upload?email=akkupati0330@gmail.com&forUser=AMAN&targetUploadCount=${
-        Math.floor(Math.random() * 2) + 1
-      }`,
+      url: `http://localhost:8999/upload?email=akkupati0330@gmail.com&forUser=AMAN&targetUploadCount=1`,
     };
 
     const response = await axios(config);
