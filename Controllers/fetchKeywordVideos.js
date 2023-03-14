@@ -57,7 +57,7 @@ export const fetchKeywordVideos = async (
       options = {
         ...options,
         params: { ...options.params, cursor },
-        headers: getApiKey(FETCH_COUNT),
+        headers: getApiKey(global.api_count),
       };
 
       const uploadResponse = await updateVideos(
@@ -72,7 +72,7 @@ export const fetchKeywordVideos = async (
 
       messageTransport.log(uploadResponse.data.msg);
       FETCH_COUNT += uploadResponse.data.count;
-      console.log("FETCH COUNT..........", FETCH_COUNT);
+      console.log("FETCH COUNT..........", FETCH_COUNT, uploadResponse.data);
       global.api_count += 1;
     }
     messageTransport.log(

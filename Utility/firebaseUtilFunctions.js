@@ -95,37 +95,36 @@ export const updateVideos = async (
 ) => {
   let newFetchCount = 0;
   try {
-    await videos.forEach(async (video) => {
-      const vidRef = db.collection("videos").doc(video.video_id);
-      const vid = await vidRef.get();
-      if (!vid.exists) {
-        messageTransport.log(`Adding document...${newFetchCount}`);
-        console.log("newFetchCount0", newFetchCount);
-        newFetchCount += 1;
-        console.log("newFetchCount1 ||", newFetchCount);
-        console.log(" ");
-
-        await db
-          .collection("videos")
-          .doc(video.video_id)
-          .set({
-            ...video,
-            forEmail,
-            forUser,
-            keyword,
-            title: video.title.substr(0, 75),
-            description: `
+    await Promise.all(
+      videos.map(async (video) => {
+        const vidRef = db.collection("videos").doc(video.video_id);
+        const vid = await vidRef.get();
+        if (!vid.exists) {
+          messageTransport.log(`Adding document...${newFetchCount}`);
+          newFetchCount += 1;
+          await db
+            .collection("videos")
+            .doc(video.video_id)
+            .set({
+              ...video,
+              forEmail,
+              forUser,
+              keyword,
+              title: video.title.substr(0, 75),
+              description: `
 Video credit goes to: @${video.author.unique_id} (${source}) 
 For removal request please refer this email: ${forEmail}
 `,
-            tags: [...video.title.split("#")],
-            uploaded: false,
-            source,
-          });
-      } else {
-        messageTransport.log("Document already exists!");
-      }
-    });
+              tags: [...video.title.split("#")],
+              uploaded: false,
+              source,
+            });
+        } else {
+          messageTransport.log("Document already exists!");
+        }
+      })
+    );
+
     return {
       data: { msg: "Videos uploaded.", count: newFetchCount },
       status: 200,
