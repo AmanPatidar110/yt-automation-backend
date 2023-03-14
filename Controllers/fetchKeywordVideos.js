@@ -38,9 +38,11 @@ export const fetchKeywordVideos = async (
       let response;
       try {
         response = await axios.request(options);
+        console.log("tit tok api response", response?.data?.data);
         if (!response)
           throw new Error(response?.data?.msg || "No response from the API!");
       } catch (error) {
+        messageTransport.log(error);
         global.api_count += 1;
         break;
       }
