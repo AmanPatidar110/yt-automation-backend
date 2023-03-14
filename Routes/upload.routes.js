@@ -61,7 +61,7 @@ router.get("/", async (req, res, next) => {
     const channel = channelResponse.data.channel;
     const selectedChannelKeyword =
       channel?.keywords[
-        channel?.KEYWORD_COUNT % (channel?.keywords.length || 1)
+        (channel?.KEYWORD_COUNT ?? 1) % (channel?.keywords.length || 1)
       ];
     messageTransport.log("Fetching video count");
 
@@ -172,10 +172,7 @@ router.get("/", async (req, res, next) => {
           const keywordSplitArray = video.keyword.split(" ");
           const filteredDescriptionKeywords =
             channel.descriptionKeywords.filter((each) =>
-              keywordSplitArray.some(
-                (substring) =>
-                  substring !== "fashion" && each.includes(substring)
-              )
+              keywordSplitArray.some((substring) => each.includes(substring))
             );
           videoMetaData.push({
             video_id: video.video_id,
