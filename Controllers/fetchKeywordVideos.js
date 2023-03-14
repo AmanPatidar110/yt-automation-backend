@@ -42,7 +42,7 @@ export const fetchKeywordVideos = async (
         if (!response)
           throw new Error(response?.data?.msg || "No response from the API!");
       } catch (error) {
-        messageTransport.log(error);
+        messageTransport.log(error?.message);
         global.api_count += 1;
         reattempts += 1;
         if (reattempts > apiKeys.length) {
