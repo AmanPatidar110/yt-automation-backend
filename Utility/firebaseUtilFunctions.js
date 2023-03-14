@@ -94,6 +94,7 @@ export const updateVideos = async (
   FETCH_COUNT,
   messageTransport = console
 ) => {
+  let newFetchCount = FETCH_COUNT;
   try {
     videos.forEach(async (video) => {
       const vidRef = db.collection("videos").doc(video.video_id);
@@ -117,12 +118,15 @@ For removal request please refer this email: ${forEmail}
             source,
           });
 
-        FETCH_COUNT += 1;
+        newFetchCount += 1;
       } else {
         messageTransport.log("Document already exists!");
       }
     });
-    return { data: { msg: "Videos uploaded.", FETCH_COUNT }, status: 200 };
+    return {
+      data: { msg: "Videos uploaded.", FETCH_COUNT: newFetchCount },
+      status: 200,
+    };
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500;
     messageTransport.log(error.message || error);
