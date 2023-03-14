@@ -20,7 +20,7 @@ export const fetchKeywordVideos = async (
   KEYWORD_COUNT = Math.floor(Math.random() * keywords.length)
 ) => {
   const keyword = keywords[KEYWORD_COUNT % (keywords.length || 1)];
-
+  let reattempts = 0;
   let FETCH_COUNT = 0;
   let hasNext = true;
   let cursor = "0";
@@ -44,7 +44,12 @@ export const fetchKeywordVideos = async (
       } catch (error) {
         messageTransport.log(error);
         global.api_count += 1;
-        break;
+        reattempts += 1;
+        if (reattempts > apiKeys.length) {
+          throw new Error(response?.data?.msg || "All APIs exausted!");
+        } else {
+          continue;
+        }
       }
 
       hasNext = response.data?.data?.hasMore;
