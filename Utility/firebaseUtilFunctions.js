@@ -100,6 +100,8 @@ export const updateVideos = async (
       const vidRef = db.collection("videos").doc(video.video_id);
       const vid = await vidRef.get();
       if (!vid.exists) {
+        messageTransport.log(`Adding document...${newFetchCount}`);
+
         await db
           .collection("videos")
           .doc(video.video_id)
