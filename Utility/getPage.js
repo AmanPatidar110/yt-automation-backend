@@ -9,7 +9,7 @@ const USER_AGENT =
 
 export const getBrowser = async () => {
   const MainBrowser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     ignoreHTTPSErrors: true,
     executablePath: chromium.path,
     args: [
@@ -30,6 +30,41 @@ export default async function createPage(MainBrowser) {
   await page.setViewport({ width: 1280, height: 720 });
 
   await page.setUserAgent(USER_AGENT);
+  await page.setJavaScriptEnabled(true);
+  await page.setDefaultNavigationTimeout(60000);
+
+  await page.evaluateOnNewDocument(() => {
+    //  Pass webdriver check
+    Object.defineProperty(navigator, "webdriver", {
+      get: () => false,
+    });
+  });
+
+  await page.evaluateOnNewDocument(() => {
+    //  Pass chrome check
+    window.chrome = {
+      runtime: {},
+      //  etc.
+    };
+  });
+
+  await page.evaluateOnNewDocument(() => {
+    //  Overwrite the `languages` property to use a custom getter.
+    Object.defineProperty(navigator, "languages", {
+      get: () => ["en-US", "en"],
+    });
+  });
+
+  return page;
+}
+
+export async function createPageFromContext(context) {
+  //  Randomize User agent or Set a valid one
+  const page = await context.newPage();
+
+  await page.setViewport({ width: 1280, height: 720 });
+
+  // await page.setUserAgent(USER_AGENT);
   await page.setJavaScriptEnabled(true);
   await page.setDefaultNavigationTimeout(60000);
 

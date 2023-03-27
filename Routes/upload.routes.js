@@ -169,20 +169,19 @@ router.get("/", async (req, res, next) => {
             messageTransport
           );
 
-          const keywordSplitArray = video.keyword.split(" ");
-          const filteredDescriptionKeywords =
-            channel.descriptionKeywords.filter((each) =>
-              keywordSplitArray.some((substring) => each.includes(substring))
-            );
+          const filteredDescriptionKeywords = channel.descriptionKeywords;
+          // .filter((each) =>
+          //   keywordSplitArray.some((substring) => each.includes(substring))
+          // );
           videoMetaData.push({
             video_id: video.video_id,
             path: `Videos/${video.video_id}_${email}.mp4`,
             title: video.title,
             description: `
-${video.title.split("#")[0]}
+${video.title}
 
 Tags:
-${filteredDescriptionKeywords.join(" ")}
+${filteredDescriptionKeywords.join(" , ")}
 ${video.description}
 `,
             thumbnail: "",
