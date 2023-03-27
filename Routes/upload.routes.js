@@ -182,7 +182,23 @@ ${video.title}
 
 Tags:
 ${filteredDescriptionKeywords.join(" , ")}
+
+Thank you for watching! Please like and subscribe for more videos. 
+
+====================================
+
+Credits goes to all the creators seen in this video! The credit and username is shown below. Make sure to check them out.
+
+If you are the owner of a video and would like your video to be taken down or have your social media linked, please email me as mentioned in Credits.
+
+*Note: Copyright Disclaimer Under Section 107 of the Copyright Act 1976, allowance is made for "fair use" for purposes such as criticism, comment, news reporting, teaching, scholar ship, and research. Fair use is a use permitted by copyright statute that might otherwise be infringing. Non-profit, educational or personal use tips the balance in favour of fair use.
+
+====================================
+
+Credits:
 ${video.description}
+
+====================================
 `,
             thumbnail: "",
             language: "english",
