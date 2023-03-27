@@ -61,7 +61,7 @@ router.get("/", async (req, res, next) => {
     const channel = channelResponse.data.channel;
     const selectedChannelKeyword =
       channel?.keywords[
-        (channel?.KEYWORD_COUNT ?? 1) % (channel?.keywords.length || 1)
+        (channel?.KEYWORD_COUNT ?? 1) % (channel?.keywords.length + 1 || 1)
       ];
     messageTransport.log("Fetching video count");
 

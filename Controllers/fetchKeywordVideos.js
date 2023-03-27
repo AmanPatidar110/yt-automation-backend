@@ -19,7 +19,7 @@ export const fetchKeywordVideos = async (
   messageTransport,
   KEYWORD_COUNT = Math.floor(Math.random() * keywords.length)
 ) => {
-  const keyword = keywords[KEYWORD_COUNT % (keywords.length || 1)];
+  const keyword = keywords[KEYWORD_COUNT % (keywords.length + 1 || 1)];
   let reattempts = 0;
   let FETCH_COUNT = 0;
   let hasNext = true;
