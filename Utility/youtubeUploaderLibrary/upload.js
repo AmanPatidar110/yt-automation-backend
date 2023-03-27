@@ -376,24 +376,25 @@ async function uploadVideo(videoJSON, email, messageTransport) {
   }
 
   // Add tags
-  // if (tags) {
-  //   messageTransport.log("Adding tags", tags);
+  if (tags) {
+    messageTransport.log("Adding tags", tags);
 
-  //   // show more
-  //   try {
-  //     await page.focus('[aria-label="Tags"]');
-  //     await page.type(
-  //       '[aria-label="Tags"]',
-  //       tags
-  //         .split(", ")
-  //         .filter((each) => each.length < 95)
-  //         .join(", ")
-  //         .substring(0, 100) + ", "
-  //     );
-  //   } catch (err) {
-  //     messageTransport.log(err.message || err);
-  //   }
-  // }
+    // show more
+    try {
+      await page.focus('[aria-label="Tags"]');
+      await page.type(
+        '[aria-label="Tags"]',
+        tags
+          .split(", ")
+          .filter((each) => each.length < 95)
+          .join(", ")
+          .concat(", shorts, ytshorts, youtubeshorts")
+          .substring(0, 100)
+      );
+    } catch (err) {
+      messageTransport.log(err.message || err);
+    }
+  }
 
   // Selecting video language
   if (videoLang) {
