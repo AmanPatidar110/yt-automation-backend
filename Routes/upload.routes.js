@@ -169,7 +169,7 @@ router.get("/", async (req, res, next) => {
             messageTransport
           );
 
-          // const filteredDescriptionKeywords = channel.descriptionKeywords;
+          const filteredDescriptionKeywords = channel.descriptionKeywords;
           // .filter((each) =>
           //   keywordSplitArray.some((substring) => each.includes(substring))
           // );
@@ -179,6 +179,10 @@ router.get("/", async (req, res, next) => {
             title: video.title || "#ytshorts",
             description: `
 ${video.title}
+
+====================================
+
+Tags: ${filteredDescriptionKeywords.join(" ")}
 
 ====================================
 
