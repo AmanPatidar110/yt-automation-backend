@@ -176,9 +176,11 @@ router.get("/", async (req, res, next) => {
           videoMetaData.push({
             video_id: video.video_id,
             path: `Videos/${video.video_id}_${email}.mp4`,
-            title: video.title,
+            title: video.title || "#ytshorts",
             description: `
 ${video.title}
+
+====================================
 
 Tags:
 ${filteredDescriptionKeywords.join(" , ")}
@@ -202,10 +204,11 @@ ${video.description}
 `,
             thumbnail: "",
             language: "english",
-            tags:
+            tags: `${
               typeof video.tags === "string"
                 ? video.tags.replaceAll("#", "")
-                : video.tags.join(", "),
+                : video.tags.join(", ")
+            }, ytshorts, trendingshorts, shorts`,
             skipProcessingWait: true,
             onProgress: (progress) => {
               messageTransport.log(
