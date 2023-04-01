@@ -60,7 +60,7 @@ export const crawl = async (
           messageTransport.log("Fetching thread: " + threadId);
 
           let cursor = "";
-          const videosToFetch = 200;
+          const videosToFetch = 400;
 
           for (let index = 0; index < Math.ceil(videosToFetch / 20); index++) {
             const response = await axios.request({

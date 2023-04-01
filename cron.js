@@ -75,7 +75,7 @@ export const runCron = () => {
     }
   );
 
-  cron.schedule("0 1,17 * * *", async () => {
+  cron.schedule("0 1 * * *", async () => {
     console.log(
       "Hitting /fetch_insta_messages for:",
       "amanpatidar110@gmail.com"
