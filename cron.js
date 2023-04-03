@@ -74,7 +74,7 @@ export const runCron = () => {
       url: `http://localhost:8999/insta/fetch_messages_from_insta`,
       data: {
         forUser: "AMAN",
-        instaCredId: "aamanpatidar110@gmail.com",
+        instaCredId: "amanpatidar110@gmail.com",
         forChannelEmail: "amanpatidar110@gmail.com",
       },
     };
