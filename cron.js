@@ -3,7 +3,7 @@ import cron from "node-cron";
 
 export const runCron = () => {
   console.log("Scheduling crons");
-  cron.schedule("2 0 1,3,5,11,13,12,15,16,17 * * * *", async () => {
+  cron.schedule("2 0 15,11,13,16,17 * * * *", async () => {
     console.log("Hitting /upload for:", "urbanlibaaz@gmail.com");
 
     var config = {
@@ -15,7 +15,7 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("2 12 1,3,5,11,13,15,16,23 * * * *", async () => {
+  cron.schedule("2 12 15,11,13,16,17* * * *", async () => {
     console.log("Hitting /upload for:", "amanpatidar110@gmail.com");
 
     var config = {
@@ -27,7 +27,7 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("2 24 1,13,12,15,16,17,21,23 * * * *", async () => {
+  cron.schedule("2 24 15,11,13,16,17 * * * *", async () => {
     console.log("Hitting /upload for:", "aamanpatidar110@gmail.com");
 
     var config = {
@@ -39,7 +39,7 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("8 48 1,3,5,11,17,18,19,21,23 * * * *", async () => {
+  cron.schedule("8 48 15,11,13,16,17 * * * *", async () => {
     console.log("Hitting /upload for:", "akkupati0330@gmail.com");
 
     var config = {
@@ -51,7 +51,7 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("10 30 1,3,5,9,17,18,23 * * * *", async () => {
+  cron.schedule("10 30 15,11,13,16,17 * * * *", async () => {
     console.log("Hitting /upload for:", "galactica.shorts@gmail.com");
 
     var config = {
