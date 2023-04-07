@@ -15,7 +15,7 @@ export const runCron = () => {
     console.log(response.data);
   });
 
-  cron.schedule("2 12 15,11,13,16,17* * * *", async () => {
+  cron.schedule("2 12 15,11,13,16,17 * * * *", async () => {
     console.log("Hitting /upload for:", "amanpatidar110@gmail.com");
 
     var config = {
